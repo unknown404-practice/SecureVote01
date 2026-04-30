@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GovVote | Official Secure Voting Protocol</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <style>
+    #map-picker-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 9999;
+      justify-content: center; align-items: center;
+      backdrop-filter: blur(8px);
+    }
+    #map-picker-content {
+      width: 90%; max-width: 800px; height: 70vh;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    #map-container { flex: 1; width: 100%; }
+    .map-header { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .map-footer { padding: 1rem; border-top: 1px solid var(--border); text-align: center; }
+  </style>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <!-- EmailJS for reliable delivery -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function(){
+      // Initialize EmailJS with your Public Key
+      emailjs.init("Cbb5J8TsqgnBHYY0e"); 
+    })();
+  </script>
+
+  <style>
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+    .view-section.active.flex-center { display: flex; }
+    #splash-screen.active { display: flex; }
+  </style>
+  <!-- QR Libraries -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+</head>
+<body>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+
+  <!-- SPLASH ANIMATION SCREEN -->
+  <section id="splash-screen" class="view-section active flex-center" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; background: #020617;">
+    <div class="splash-content" style="text-align: center;">
+      <img src="app_icon.png" style="width: 100px; height: 100px; border-radius: 20px; box-shadow: 0 0 40px var(--primary-glow); animation: pulse 2s infinite; margin: 0 auto;">
+      <h1 class="text-gradient mt-2" style="font-size: 3.5rem; font-weight: 800;">SECUREVOTE</h1>
+      <p style="font-size: 1.2rem; color: var(--text-secondary); letter-spacing: 2px;" id="splash-message">AUTHENTICATING SECURE PROTOCOL...</p>
+    </div>
+  </section>
+
+  <!-- AUTHENTICATION SCREEN -->
+  <section id="auth-screen" class="view-section flex-center">
+    <div class="glass-panel auth-box" style="margin-top: 0;">
+      <div style="text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2rem;">
+        <h1 class="text-gradient" style="margin-bottom: 0.5rem; font-size: 3rem; font-weight: 900;">SECUREVOTE</h1>
+        <p style="color: var(--text-secondary); font-weight: 500; letter-spacing: 1px;">Official On-Device Authentication</p>
+      </div>
+      
+      <div id="firebase-auth-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <button id="btn-google-login" onclick="if(this.disabled) return; this.disabled=true; if(typeof Auth !== 'undefined') { Auth.loginWithGoogle().finally(() => this.disabled=false); } else { this.disabled=false; }" class="btn btn-primary w-100" style="padding: 1.25rem; font-size: 1.1rem; border: none; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">
+          <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google" style="width: 24px; filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));">
+          SIGN IN WITH GOOGLE
+        </button>
+        <div class="divider"><span>ENCRYPTED OFFICIAL ACCESS</span></div>
+        <p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">
+          This portal requires an authorized Google Workspace account.<br>
+          <span style="color: var(--primary); font-weight: 800;">Identity verification is mandatory.</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ROLE SELECTION SCREEN -->
+  <section id="role-screen" class="view-section" style="padding: 0; position: relative;">
+    <div class="marquee-container">
+      <div class="marquee-content">
+        WELCOME TO SECUREVOTE PROTOCOL - THE OFFICIAL STATE-AUTHORIZED DIGITAL VOTING SYSTEM - ENSURING INTEGRITY AND TRANSPARENCY IN EVERY BALLOT - SYSTEM STATUS: SECURE & OPERATIONAL - 
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; padding: 1.5rem; width: 100%; overflow-x: hidden;">
+        <div style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem;">
+            <img src="app_icon.png" style="width: 70px; height: 70px; border-radius: 16px; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.1);">
+            <h1 style="font-weight: 900; font-size: clamp(1.6rem, 8vw, 3.8rem); letter-spacing: clamp(2px, 1.5vw, 8px); color: white; line-height: 1; margin: 0; text-align:center;">SECUREVOTE</h1>
+            <span style="font-weight: 800; font-size: clamp(0.6rem, 2vw, 0.9rem); letter-spacing: clamp(4px, 2vw, 14px); color: var(--primary); text-transform: uppercase; margin-top: 10px; text-align:center;">Official Protocol</span>
+        </div>
+
+    <div class="glass-panel" style="max-width: 1000px; width: 100%; padding: clamp(1rem, 4vw, 3rem); border: 1px solid var(--border);">
+      <div style="text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 2rem; margin-bottom: 2.5rem;">
+        <h2 style="font-size: clamp(1rem, 3.5vw, 1.8rem); color: var(--text-secondary); font-weight: 500; letter-spacing: clamp(0px, 0.5vw, 2px); text-transform: uppercase;">Portal Selection & Administration</h2>
+        <div style="display: flex; gap: 1.5rem; justify-content: center; margin-top: 2rem;">
+          <button id="btn-organizer-manual" class="btn btn-secondary btn-sm tooltip-trigger" title="Organizer Manual: Establish election schema, topological mapping, and ticket generation.">Organizer Manual</button>
+          <button id="btn-voter-manual" class="btn btn-secondary btn-sm tooltip-trigger" title="Voter Manual: Authenticate with your ticket QR code and cast your ballot.">Voter Manual</button>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 1.5rem;">
+        <div class="role-card glass-panel" id="card-organizer">
+          <div class="icon-wrap bg-primary-soft"><i data-lucide="database" class="icon-primary"></i></div>
+          <h3 style="font-size: 1.4rem;">Official Organizer</h3>
+          <p>Establish voting protocols, map locations, and monitor live counting.</p>
+          <div style="margin-top: 1.5rem; width: 100%;">
+            <button id="btn-enter-organizer" class="btn btn-primary w-100">ACCESS THE ORGANIZATION DATABASE</button>
+          </div>
+        </div>
+
+        <div class="role-card glass-panel" id="card-voter" style="opacity:1 !important; pointer-events:auto !important; border: 2px solid rgba(59, 130, 246, 0.3); position:relative;">
+          <div style="position:absolute; top:1rem; right:1rem;">
+            <span style="background:var(--success-soft); color:var(--success); font-size:0.6rem; padding:0.25rem 0.6rem; border-radius:20px; font-weight:900; letter-spacing:1px; border:1px solid var(--success);">SYSTEM READY</span>
+          </div>
+          <div class="icon-wrap bg-accent-soft"><i data-lucide="vote" class="icon-accent"></i></div>
+          <h3 style="font-size: 1.4rem; font-weight: 900;">Voter Booth</h3>
+          <p style="color:var(--text-secondary); margin-bottom: 1rem;">Authenticate your ticket and cast your secure ballot with zero-latency verification.</p>
+          <div style="margin-top: 1.5rem; width: 100%;">
+            <div id="qr-reader" style="width: 100%; border-radius: 12px; overflow: hidden; display: none; margin-bottom: 1.5rem;"></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom: 1.5rem;">
+              <button id="btn-scan-camera" class="btn btn-secondary" style="width: 100%; padding: 1.2rem 0.5rem !important; font-size: 0.9rem !important; font-weight:900;"><i data-lucide="camera" class="icon-primary"></i> SCAN</button>
+              <label for="qr-upload" class="btn btn-secondary" style="width: 100%; cursor:pointer; margin:0; display: inline-flex; justify-content:center; align-items:center; padding: 1.2rem 0.5rem !important; font-size: 0.9rem !important; font-weight:900;"><i data-lucide="upload" class="icon-primary"></i> UPLOAD</label>
+              <input type="file" id="qr-upload" accept="image/*" style="display: none;">
+            </div>
+            <div class="divider"><span>OR MANUAL ENTRY</span></div>
+            <input type="text" id="voter-id-input" placeholder="ENTER VOTER ID" class="form-input" style="margin-bottom: 0.5rem; text-transform: uppercase; text-align: center; font-weight: 800; letter-spacing: 2px; border: 2px solid rgba(255,255,255,0.1);">
+            <p style="font-size: 0.7rem; color: var(--text-secondary); text-align: center; margin-bottom: 1.5rem; font-weight: 700; letter-spacing: 1px; opacity:0.6;">FORMAT: VOTER-XXXXXXXXX</p>
+            <button id="btn-enter-voter" class="btn btn-primary w-100" style="padding:1.2rem; font-weight:900; letter-spacing:2px;">VERIFY TICKET</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+        <p style="color: var(--text-secondary); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 600;">&copy; SECUREVOTE PROTOCOL | BY RANADEEP SAHA</p>
+        <div style="margin-top: 1.25rem; display:flex; gap: 1.5rem; justify-content: center;">
+          <button id="btn-logout" class="btn btn-secondary btn-sm"><i data-lucide="log-out"></i> SIGN OUT</button>
+          <a href="mailto:ranadeep2021saha@gmail.com" class="btn btn-secondary btn-sm"><i data-lucide="mail"></i> CONTACT ADMIN</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ORGANIZER MANUAL SECTION -->
+  <section id="manual-organizer-screen" class="view-section">
+    <header class="app-header">
+      <div style="display:flex; align-items:center; gap:1.5rem;">
+        <button class="btn btn-secondary btn-sm btn-back" title="Go Back"><i data-lucide="arrow-left"></i></button>
+        <div class="logo" style="font-weight: 800; font-size: 1.5rem; display: flex; align-items: center; gap: 0.75rem;"><i data-lucide="book-open" class="text-primary"></i> ORGANIZER MANUAL</div>
+      </div>
+    </header>
+    
+    <div style="max-width: 1000px; margin: 0 auto; padding-bottom: 4rem;">
+      <div class="glass-panel p-2">
+        <h2 class="text-primary mb-2" style="font-weight: 900; letter-spacing: 1px;">SYSTEM ADMINISTRATION WORKFLOW</h2>
+        
+        <div class="manual-grid" style="display: grid; gap: 2rem;">
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num">01</span> ELECTION CONFIGURATION</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">Define the election mandate, legal scope, and geographic classification. Set the precise operational timeline including start and end timestamps.</p>
+          </div>
+          
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num">02</span> LOCATION TOPOLOGY</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">Map the physical booth locations using the Google Maps integration. Ensure the pincode and city data are accurate for the digital link mapping.</p>
+          </div>
+
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num">03</span> CANDIDATE REGISTRATION</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">Upload candidate logos and register their numeric designations. The system automatically balances the ballot cards for the voter interface.</p>
+          </div>
+
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num">04</span> TICKET GENERATION & EXPORT</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">Generate official print sheets (A4) and individual digital tickets (ZIP). The system uses High-Precision hitboxes to ensure buttons work on all devices.</p>
+          </div>
+
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num">05</span> REAL-TIME MONITORING</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">Access the live dashboard to monitor vote counts and protocol integrity. Once the election concludes, publish the certified results instantly.</p>
+          </div>
+        </div>
+
+        <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); text-align: center;">
+          <p style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 800; letter-spacing: 2px;">&copy; 2026 SECUREVOTE PROTOCOL | ALL RIGHTS RESERVED | BY RANADEEP SAHA</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VOTER MANUAL SECTION -->
+  <section id="manual-voter-screen" class="view-section">
+    <header class="app-header">
+      <div style="display:flex; align-items:center; gap:1.5rem;">
+        <button class="btn btn-secondary btn-sm btn-back" title="Go Back"><i data-lucide="arrow-left"></i></button>
+        <div class="logo" style="font-weight: 800; font-size: 1.5rem; display: flex; align-items: center; gap: 0.75rem;"><i data-lucide="user-check" class="text-accent"></i> OFFICIAL VOTER MANUAL</div>
+      </div>
+    </header>
+
+    <div style="max-width: 1000px; margin: 0 auto; padding-bottom: 4rem;">
+      <div class="glass-panel p-2">
+        <h2 class="text-accent mb-2" style="font-weight: 900; letter-spacing: 1px;">THE SECURE VOTING PROCESS</h2>
+        
+        <div class="manual-grid" style="display: grid; gap: 2rem;">
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num-voter">01</span> RECEIPT OF TICKET</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">Your authorized ticket contains a unique QR code and a secret Voter ID. Keep this document confidential at all times.</p>
+          </div>
+
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num-voter">02</span> SECURE AUTHENTICATION</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">Use your device camera to scan the ticket or upload the digital PDF. You can also manually enter your ID for verification.</p>
+          </div>
+
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num-voter">03</span> NAVIGATING THE COMMAND CENTER</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">The "Hub Dashboard" is your central control point. Access the Election Timeline, System Security Status, and Guidelines directly from the main cards.</p>
+          </div>
+
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num-voter">04</span> REVIEWING CANDIDATES</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">Examine the "Official Ballot" cards. Each candidate's logo and numeric designation are clearly displayed for your review.</p>
+          </div>
+
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num-voter">05</span> CASTING YOUR BALLOT</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">Click the "VOTE" button for your chosen representative. Confirm your selection in the secure popup. This action is irreversible.</p>
+          </div>
+
+          <div class="manual-step">
+            <h3 style="display:flex; align-items:center; gap:1rem; color:var(--text-main);"><span class="step-num-voter">06</span> SECURITY ASSURANCE</h3>
+            <p style="color:var(--text-secondary); margin-left: 3.5rem;">Once confirmed, your session is locked. The system uses end-to-end encryption to ensure your vote remains anonymous and tamper-proof.</p>
+          </div>
+        </div>
+
+        <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); text-align: center;">
+          <p style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 800; letter-spacing: 2px;">&copy; 2026 SECUREVOTE PROTOCOL | ALL RIGHTS RESERVED | BY RANADEEP SAHA</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ORGANIZER DASHBOARD -->
+  <section id="organizer-screen" class="view-section">
+    <header class="app-header">
+      <div style="display:flex; align-items:center; gap:1rem; overflow:hidden;">
+        <button class="btn btn-secondary btn-sm btn-back" title="Go Back" style="flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
+        <div class="logo" style="font-weight: 800; font-size: clamp(0.85rem, 3vw, 1.4rem); display: flex; align-items: center; gap: 0.5rem; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i data-lucide="settings" class="icon-primary" style="flex-shrink:0;"></i> ORGANIZER PORTAL</div>
+      </div>
+    </header>
+
+    <div class="dashboard-grid org-grid">
+      <!-- 1. Election Setup -->
+      <div class="glass-panel p-1">
+        <h3 class="step-header">1. SCOPE & LOCATION CONFIGURATION</h3>
+        <div id="form-election-setup" style="margin-top: 1.5rem;">
+          <div class="form-group"><label>VOTE TITLE / MANDATE</label><input type="text" id="el-title" class="form-input" placeholder="e.g. 2026 Lok Sabha Election" required></div>
+          
+          <div class="form-group"><label>ELECTION TYPE CLASSIFICATION</label>
+            <select id="el-type" class="form-input" required>
+              <option value="">Select Official Category...</option>
+              <optgroup label="National Level">
+                <option value="President of India">President of India</option>
+                <option value="Vice President of India">Vice President of India</option>
+                <option value="Lok Sabha (Lower House)">Lok Sabha (Lower House)</option>
+                <option value="Rajya Sabha (Upper House)">Rajya Sabha (Upper House)</option>
+              </optgroup>
+              <optgroup label="State Election Commissions">
+                <option value="Andhra Pradesh State Election Commission">Andhra Pradesh SEC</option>
+                <option value="Arunachal Pradesh State Election Commission">Arunachal Pradesh SEC</option>
+                <option value="Assam State Election Commission">Assam SEC</option>
+                <option value="Bihar State Election Commission">Bihar SEC</option>
+                <option value="Chhattisgarh State Election Commission">Chhattisgarh SEC</option>
+                <option value="Delhi State Election Commission">Delhi SEC</option>
+                <option value="Goa State Election Commission">Goa SEC</option>
+                <option value="Gujarat State Election Commission">Gujarat SEC</option>
+                <option value="Haryana State Election Commission">Haryana SEC</option>
+                <option value="Himachal Pradesh State Election Commission">Himachal Pradesh SEC</option>
+                <option value="Jammu and Kashmir State Election Commission">Jammu and Kashmir SEC</option>
+                <option value="Jharkhand State Election Commission">Jharkhand SEC</option>
+                <option value="Karnataka State Election Commission">Karnataka SEC</option>
+                <option value="Kerala State Election Commission">Kerala SEC</option>
+                <option value="Madhya Pradesh State Election Commission">Madhya Pradesh SEC</option>
+                <option value="Maharashtra State Election Commission">Maharashtra SEC</option>
+                <option value="Manipur State Election Commission">Manipur SEC</option>
+                <option value="Meghalaya State Election Commission">Meghalaya SEC</option>
+                <option value="Mizoram State Election Commission">Mizoram SEC</option>
+                <option value="Nagaland State Election Commission">Nagaland SEC</option>
+                <option value="Odisha State Election Commission">Odisha SEC</option>
+                <option value="Puducherry State Election Commission">Puducherry SEC</option>
+                <option value="Punjab State Election Commission">Punjab SEC</option>
+                <option value="Rajasthan State Election Commission">Rajasthan SEC</option>
+                <option value="Sikkim State Election Commission">Sikkim SEC</option>
+                <option value="Tamil Nadu State Election Commission">Tamil Nadu SEC</option>
+                <option value="Telangana State Election Commission">Telangana SEC</option>
+                <option value="Tripura State Election Commission">Tripura SEC</option>
+                <option value="Uttar Pradesh State Election Commission">Uttar Pradesh SEC</option>
+                <option value="Uttarakhand State Election Commission">Uttarakhand SEC</option>
+                <option value="West Bengal State Election Commission">West Bengal SEC</option>
+              </optgroup>
+              <optgroup label="Legislative Assemblies">
+                <option value="State Legislative Assemblies (Vidhan Sabha)">State Legislative Assemblies</option>
+                <option value="State Legislative Councils (Vidhan Parishad)">State Legislative Councils</option>
+                <option value="Legislative Assembly of NCT of Delhi">Legislative Assembly of NCT of Delhi</option>
+                <option value="Legislative Assembly of UT of Puducherry">Legislative Assembly of UT of Puducherry</option>
+              </optgroup>
+              <optgroup label="Local & Miscellaneous">
+                <option value="Local Governance Bodies (Municipal/Panchayats)">Municipal / Panchayats</option>
+                <option value="By-election">Official By-election</option>
+                <option value="University senate">University Senate</option>
+                <option value="Corporate Board">Corporate Board</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="form-group"><label>REASON / DIRECTIVE</label><input type="text" id="el-reason" class="form-input" placeholder="Official Directive Details" required></div>
+          
+          <div class="two-col-grid" style="margin-bottom:0.75rem;">
+            <input type="text" id="el-state" class="form-input" placeholder="State" required>
+            <input type="text" id="el-city" class="form-input" placeholder="City" required>
+          </div>
+          <div class="two-col-grid" style="margin-bottom:0.75rem;">
+            <input type="text" id="el-pincode" class="form-input" placeholder="Pincode" required>
+            <input type="text" id="el-address" class="form-input" placeholder="West Bengal Assembly" required>
+          </div>
+          <button type="button" id="id-btn-gps" onclick="handleGpsCapture()" class="btn btn-secondary btn-sm w-100" style="margin-bottom: 1.5rem;"><i data-lucide="map-pin" class="icon-primary"></i> CAPTURE GPS COORDINATES</button>
+          <input type="hidden" id="el-gps-lat"><input type="hidden" id="el-gps-lng">
+          <div id="gps-status" style="display:none; text-align:center; padding: 1rem; background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); border-radius: 8px; margin-bottom: 2rem; animation: slideUp 0.4s ease-out;">
+            <p style="color:var(--success); font-weight:800; font-size: 0.85rem; letter-spacing: 1px; margin: 0; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+              <i data-lucide="shield-check" style="width:16px;"></i> ADMINISTRATIVE SECURE LOCK ESTABLISHED
+            </p>
+            <p style="color:var(--text-secondary); font-size: 0.65rem; margin-top: 0.25rem; font-weight: 500;">Hardware prompt bypassed: High-precision location verified via official records.</p>
+          </div>
+
+          <div class="form-group" style="margin-top: 1rem;">
+            <label class="label-with-icon"><i data-lucide="calendar" class="icon-accent"></i> POLLING DATE</label>
+            <input type="date" id="el-date" class="form-input" required>
+          </div>
+          <div class="two-col-grid">
+            <div class="form-group">
+              <label class="label-with-icon"><i data-lucide="clock" class="icon-accent"></i> START</label>
+              <input type="time" id="el-start" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="label-with-icon"><i data-lucide="clock" class="icon-accent"></i> END</label>
+              <input type="time" id="el-end" class="form-input" required>
+            </div>
+          </div>
+          
+
+          <div class="form-group"><label>ORGANIZER SEAL / LOGO</label>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <input type="url" id="el-logo-url" class="form-input" placeholder="Logo URL" style="flex:1; min-width:0;" oninput="document.getElementById('el-logo-preview').src=this.value; document.getElementById('el-logo-preview').style.display='block'">
+              <label for="el-logo-file" class="btn btn-secondary" style="cursor:pointer; margin:0; flex-shrink:0; padding:0.85rem;"><i data-lucide="upload" class="icon-primary"></i></label>
+              <input type="file" id="el-logo-file" accept="image/*" style="display:none;" onchange="handleLogoUpload(this, 'el-logo-url', 'el-logo-preview')">
+            </div>
+            <img id="el-logo-preview" style="height:50px; display:none; margin-top:0.75rem; border-radius:10px; border:1px solid var(--border); max-width:100%;">
+          </div>
+          
+          <button type="button" onclick="handleEstablishProtocol()" class="btn btn-primary w-100 mt-2">ESTABLISH PROTOCOL</button>
+        </div>
+      </div>
+
+      <!-- 2. Team Setup -->
+      <div class="glass-panel p-1" id="teams-panel" style="opacity: 0.5; pointer-events: none;">
+        <h3 class="step-header">2. Official Participants</h3>
+        <div id="form-add-team" style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem;">
+          <div class="two-col-grid team-reg-grid" style="margin-bottom:0.75rem;">
+            <input type="text" id="team-name" class="form-input" placeholder="Party / Team Name" required>
+            <input type="number" id="team-numeric" class="form-input" placeholder="Ballot #" required style="min-width:80px;">
+          </div>
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem; align-items:center;">
+            <input type="url" id="team-logo-url" class="form-input" placeholder="Logo URL OR File" style="flex:1; min-width:0;" oninput="document.getElementById('team-logo-preview').src=this.value; document.getElementById('team-logo-preview').style.display='block'">
+            <label for="team-logo-file" class="btn btn-secondary" style="cursor:pointer; margin:0; flex-shrink:0; padding:0.85rem;"><i data-lucide="upload" class="icon-primary"></i></label>
+            <input type="file" id="team-logo-file" accept="image/*" style="display:none;" onchange="handleLogoUpload(this, 'team-logo-url', 'team-logo-preview')">
+          </div>
+          <img id="team-logo-preview" style="height:60px; display:none; margin-bottom:1rem; border-radius:12px; border:1px solid var(--border);">
+          <button type="button" onclick="handleRegisterParticipant()" class="btn btn-secondary w-100"><i data-lucide="user-plus" class="icon-primary"></i> Register Participant</button>
+        </div>
+        <div id="teams-list" style="max-height: 600px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-right: 0.5rem;" class="custom-scrollbar"></div>
+      </div>
+
+      <div class="org-right-col">
+        <div class="glass-panel p-1" id="live-panel" style="opacity: 0.5;">
+          <h3 class="step-header text-accent"><i data-lucide="activity" class="icon-accent"></i> LIVE AGGREGATION</h3>
+          <div id="live-counting-area" style="text-align: center; padding: 2rem 0;"><p style="color:var(--text-secondary);">Waiting for protocol initialization...</p></div>
+        </div>
+
+        <div class="glass-panel p-1" id="actions-panel" style="opacity: 0.5; pointer-events: none;">
+          <h3 class="step-header">3. DISTRIBUTION & PUBLISHING</h3>
+          <div class="form-group"><label>BATCH SIZE (VOTERS)</label><input type="number" id="num-voters" class="form-input" value="12"></div>
+          <button id="btn-generate-tickets" class="btn btn-primary w-100" style="margin-bottom: 1.5rem;"><i data-lucide="printer"></i> GENERATE OFFICIAL PRINT SHEET (PDF)</button>
+          <button id="btn-generate-zip" class="btn btn-secondary w-100" style="margin-bottom: 1.5rem;"><i data-lucide="file-archive"></i> DOWNLOAD INDIVIDUAL DIGITAL PDFs (ZIP)</button>
+          <button id="btn-draft-notice" class="btn btn-secondary w-100" style="margin-bottom: 2rem;"><i data-lucide="image" class="icon-accent"></i> Draft Public Notice (JPG)</button>
+          <button id="btn-publish-results" class="btn btn-accent w-100" disabled><i data-lucide="gavel" class="icon-accent"></i> Finalize & Publish Results</button>
+        </div>
+
+        <!-- 4. Administrative Security -->
+        <div class="glass-panel p-1">
+          <h3 class="step-header"><i data-lucide="shield-alert" class="icon-primary"></i> ADMIN SECURITY</h3>
+          <div class="form-group">
+            <label>UPDATE ACCESS PROTOCOL CODE</label>
+            <div style="display:flex; gap:0.5rem;">
+              <input type="text" id="new-org-code" class="form-input" placeholder="New Code (e.g. SECRET-123)">
+              <button onclick="handleUpdateAccessCode()" class="btn btn-primary" style="padding:0.85rem;"><i data-lucide="refresh-cw"></i></button>
+            </div>
+            <p style="font-size:0.65rem; color:var(--text-secondary); margin-top:0.5rem;">This will synchronize across all your authenticated devices via Cloud Protocol.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VOTER BOOTH SCREEN -->
+  <section id="voter-screen" class="view-section">
+    <header class="app-header">
+      <div style="display:flex; align-items:center; gap:1rem; overflow:hidden; flex:1;">
+        <div class="logo" style="font-weight:800; font-size:clamp(0.9rem,3vw,1.5rem); display:flex; align-items:center; gap:0.5rem; white-space:nowrap;"><i data-lucide="vote" class="text-accent" style="flex-shrink:0;"></i> OFFICIAL BALLOT BOOTH</div>
+      </div>
+      <div id="display-voter-id" style="font-size:0.7rem; color:var(--primary); font-weight:900; letter-spacing:1px; flex-shrink:0;"></div>
+    </header>
+
+    <div class="voter-layout" style="min-height: calc(100vh - 56px); border-radius:0; border-left:none; border-right:none; border-bottom:none;">
+
+      <div class="voter-sidebar" id="voter-sidebar">
+        <!-- Security Window -->
+        <div id="tab-security" class="tab-content">
+          <div class="window-header">
+            <button class="btn btn-secondary btn-sm btn-back-to-booth"><i data-lucide="arrow-left"></i></button>
+            <h2 style="font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">SYSTEM SECURITY STATUS</h2>
+          </div>
+          <div class="tab-window-content">
+            <h2 class="text-primary" style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem;">SECUREVOTE AUTHORIZED</h2>
+            <p style="color:var(--text-secondary); margin-bottom: 2.5rem;">Authentication successful. Your session is protected by AES-256 local encryption.</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+              <div class="glass-panel" style="border-left: 4px solid var(--success);">
+                <h4 style="font-size:0.7rem; text-transform:uppercase; color:var(--text-secondary); margin-bottom: 0.5rem;">VOTER STATUS</h4>
+                <p style="font-weight:800; color:var(--success); font-size: 1.2rem; letter-spacing: 1px;">AUTHORIZED</p>
+              </div>
+              <div class="glass-panel" style="border-left: 4px solid var(--accent);">
+                <h4 style="font-size:0.7rem; text-transform:uppercase; color:var(--text-secondary); margin-bottom: 0.5rem;">ENCRYPTION PROTOCOL</h4>
+                <p style="font-weight:800; font-size: 1.2rem; letter-spacing: 1px;">AES-256 BIT</p>
+              </div>
+              <div class="glass-panel" style="grid-column: 1 / -1; background: rgba(59, 130, 246, 0.05); border: 1px dashed var(--primary);">
+                <h4 class="text-primary" style="display:flex; align-items:center; gap:0.75rem; font-size: 0.9rem; margin-bottom: 0.75rem; text-transform: uppercase; font-weight: 800;"><i data-lucide="shield"></i> DATA INTEGRITY ASSURANCE</h4>
+                <p style="color:var(--text-secondary);">Your vote is hashed locally and transmitted via a secure encrypted tunnel. No identity data is stored or transmitted in plain text. Multi-factor verification is active.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline Window -->
+        <div id="tab-details" class="tab-content">
+          <div class="window-header">
+            <button class="btn btn-secondary btn-sm btn-back-to-booth"><i data-lucide="arrow-left"></i></button>
+            <h2 style="font-weight:800; text-transform:uppercase; letter-spacing:1px; font-size:clamp(0.9rem,2vw,1.2rem);">ELECTION TIMELINE</h2>
+          </div>
+          <div class="tab-window-content" style="padding:1.25rem;">
+            <div id="vote-metadata-container" style="display:flex; flex-direction:column; gap:1rem;">
+              <!-- Filled by voter.js renderMetadata() -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Guidelines Window -->
+        <div id="tab-guidelines" class="tab-content">
+          <div class="window-header">
+            <button class="btn btn-secondary btn-sm btn-back-to-booth"><i data-lucide="arrow-left"></i></button>
+            <h2 style="font-weight:800; text-transform:uppercase; letter-spacing:1px; font-size:clamp(0.9rem,2vw,1.2rem);">VOTER GUIDELINES</h2>
+          </div>
+          <div class="tab-window-content" style="padding:1rem; display:flex; flex-direction:column; gap:1rem;">
+            <!-- Critical notice (Image 3 style) -->
+            <div style="border:2px solid var(--error); border-radius:12px; padding:1rem; display:flex; gap:0.75rem; align-items:flex-start;">
+              <i data-lucide="alert-circle" style="width:18px; color:var(--error); flex-shrink:0; margin-top:2px;"></i>
+              <div>
+                <div style="font-weight:900; font-size:0.85rem; color:var(--error); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.4rem;">CRITICAL SECURITY NOTICE</div>
+                <p style="color:var(--text-secondary); font-size:0.82rem; line-height:1.6;">DO NOT SHARE YOUR VOTER ID OR QR CODE WITH ANYONE. System administrators will never ask for your secret credentials.</p>
+              </div>
+            </div>
+            <!-- 3-col card grid (responsive) -->
+            <div class="guideline-grid">
+              <div class="glass-panel guideline-card"><p>Verify your election timeline in the "Timeline" tab before proceeding.</p></div>
+              <div class="glass-panel guideline-card"><p>Examine all candidates listed in the "Official Ballot" card gallery.</p></div>
+              <div class="glass-panel guideline-card"><p>Click the "VOTE" button for your chosen candidate to finalize.</p></div>
+            </div>
+            <div class="glass-panel guideline-card" style="width:100%;"><p>Once cast, your ballot is permanent and cannot be modified.</p></div>
+          </div>
+        </div>
+
+        <!-- Assistant Window -->
+        <div id="tab-assistant" class="tab-content" style="height:100%; display:flex; flex-direction:column;">
+          <div class="window-header">
+            <button class="btn btn-secondary btn-sm btn-back-to-booth"><i data-lucide="arrow-left"></i></button>
+            <h2 style="font-weight:800; text-transform:uppercase; letter-spacing:1px; font-size:clamp(0.9rem,2vw,1.2rem); display:flex; align-items:center; gap:0.5rem;">
+              <i data-lucide="bot" style="color:var(--primary); flex-shrink:0;"></i> ASK SYSTEM ASSISTANT
+            </h2>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; padding:1rem; gap:0.75rem;">
+            <div id="ai-chat" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.75rem; padding:0.25rem;"></div>
+            <form id="form-ai" style="display:flex; gap:0.5rem; flex-shrink:0;">
+              <input type="text" id="ai-input" class="form-input" placeholder="Ask System Assistant..." style="flex:1; min-width:0;">
+              <button type="submit" class="btn btn-primary" style="padding:0.85rem 1rem; flex-shrink:0;"><i data-lucide="send"></i></button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="voter-main" id="voter-main">
+        <!-- BOOTH 2-COL LAYOUT: Ballot (left) + Status/Info (right) -->
+        <div class="booth-layout">
+          <!-- LEFT: Official Ballot -->
+          <div class="booth-ballot-col">
+            <div class="booth-ballot-header">
+              <h2 style="font-weight:900; letter-spacing:3px; color:var(--primary); font-size:clamp(1rem,2.5vw,1.6rem); display:flex; align-items:center; gap:0.6rem; margin:0;"><i data-lucide="vote" style="flex-shrink:0;"></i> OFFICIAL BALLOT</h2>
+              <div style="display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
+                <span class="status-badge secure"><span class="status-dot"></span> SECURE</span>
+              </div>
+            </div>
+            <div id="ballot-status" class="alert mb-2" style="display:none;"></div>
+            <div id="ballot-teams" class="ballot-grid"></div>
+          </div>
+
+          <!-- RIGHT: Protocol Status + Data Integrity -->
+          <div class="booth-info-col">
+            <!-- Protocol + Status Card -->
+            <div class="glass-panel booth-info-card">
+              <div class="booth-info-row">
+                <i data-lucide="shield-check" style="width:20px; color:var(--primary); flex-shrink:0;"></i>
+                <div>
+                  <div class="booth-info-label">STATUS</div>
+                  <div class="booth-info-value success"><span class="status-dot" style="background:var(--success); display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; animation:pulse 2s infinite;"></span> AUTHORIZED</div>
+                </div>
+              </div>
+              <div class="booth-info-divider"></div>
+              <div class="booth-info-row">
+                <i data-lucide="hash" style="width:20px; color:var(--accent); flex-shrink:0;"></i>
+                <div>
+                  <div class="booth-info-label">PROTOCOL NO.</div>
+                  <div id="dash-protocol-num" class="booth-info-value accent" style="font-family:monospace;">SV-LOK-260429</div>
+                </div>
+              </div>
+              <div class="booth-info-divider"></div>
+              <div class="booth-info-row">
+                <i data-lucide="clock" style="width:20px; color:var(--text-secondary); flex-shrink:0;"></i>
+                <div>
+                  <div class="booth-info-label">POLL STATUS</div>
+                  <div id="dash-poll-status" class="booth-info-value">CHECKING...</div>
+                  <div id="dash-poll-time" style="font-size:0.7rem; color:var(--text-secondary); margin-top:2px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Data Integrity Panel -->
+            <div class="glass-panel booth-integrity-card">
+              <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+                <i data-lucide="shield" style="width:18px; color:var(--primary); flex-shrink:0;"></i>
+                <span style="font-weight:900; font-size:0.8rem; color:var(--primary); letter-spacing:1.5px; text-transform:uppercase;">DATA INTEGRITY</span>
+              </div>
+              <div class="integrity-item">
+                <i data-lucide="lock" style="width:14px; color:var(--success);"></i>
+                <div><div class="integrity-label">ENCRYPTION</div><div class="integrity-value success">AES-256 BIT</div></div>
+              </div>
+              <div class="integrity-item">
+                <i data-lucide="database" style="width:14px; color:var(--primary);"></i>
+                <div><div class="integrity-label">STORAGE</div><div class="integrity-value primary">LOCAL ONLY</div></div>
+              </div>
+              <div class="integrity-item">
+                <i data-lucide="eye-off" style="width:14px; color:var(--accent);"></i>
+                <div><div class="integrity-label">ANONYMITY</div><div class="integrity-value accent">GUARANTEED</div></div>
+              </div>
+              <div class="integrity-item">
+                <i data-lucide="check-circle" style="width:14px; color:var(--success);"></i>
+                <div><div class="integrity-label">INTEGRITY</div><div class="integrity-value success">HASH VERIFIED</div></div>
+              </div>
+              <p style="font-size:0.72rem; color:var(--text-secondary); margin-top:0.85rem; padding-top:0.75rem; border-top:1px solid var(--border); line-height:1.5;">Your vote is locally hashed. No identity data is linked to your ballot after submission.</p>
+            </div>
+
+            <!-- Voter ID badge -->
+            <div class="glass-panel" style="padding:1rem !important; text-align:center;">
+              <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:2px; text-transform:uppercase; margin-bottom:0.4rem;">YOUR VOTER ID</div>
+              <div id="dash-voter-id" style="font-weight:900; font-size:0.95rem; color:white; font-family:monospace; letter-spacing:1px;">---</div>
+            </div>
+          </div>
+        </div>
+
+
+          <!-- DASHBOARD OVERVIEW SECTION -->
+        <div id="voter-dashboard-overview" style="display:none; padding:0.5rem 0;">
+          <!-- Hero Section -->
+          <h1 style="font-size:clamp(2rem,8vw,3.5rem); font-weight:900; line-height:1.1; margin-bottom:0.5rem;">SECUREVOTE<br>AUTHORIZED</h1>
+          <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1.5rem; line-height:1.6;">Authentication successful. Your Voter ID is locked to this device session. Please review all details before casting your ballot.</p>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+            <div class="glass-panel" style="border-left:4px solid var(--success); padding:1.25rem !important;">
+              <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:2px; text-transform:uppercase; margin-bottom:0.5rem;">STATUS</div>
+              <div style="font-weight:900; color:var(--success); font-size:1.4rem; letter-spacing:1px;">AUTHORIZED</div>
+              <div id="dash-voter-id" style="font-size:0.7rem; color:var(--text-secondary); margin-top:0.5rem; font-weight:700;"></div>
+            </div>
+            <div class="glass-panel" style="border-left:4px solid var(--accent); padding:1.25rem !important;">
+              <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:2px; text-transform:uppercase; margin-bottom:0.5rem;">PROTOCOL</div>
+              <div id="dash-protocol-num" style="font-weight:900; font-size:1.4rem; letter-spacing:1px; font-family:monospace;">---</div>
+              <div id="dash-election-type" style="font-size:0.7rem; color:var(--text-secondary); margin-top:0.5rem;"></div>
+            </div>
+          </div>
+
+          <!-- Poll status (hidden id for JS) -->
+          <div id="dash-poll-status" style="display:none;"></div>
+          <div id="dash-poll-time" style="display:none;"></div>
+
+          <!-- SYSTEM NAVIGATION HUB (COMMAND CENTER) -->
+          <div style="margin-bottom: 2rem;">
+            <h3 style="color:var(--text-secondary); font-weight:900; font-size:0.75rem; letter-spacing:3px; text-transform:uppercase; margin-bottom:1.25rem; display:flex; align-items:center; gap:0.75rem;">
+              <i data-lucide="layout-grid" style="width:16px;"></i> SYSTEM COMMAND CENTER
+            </h3>
+            <div class="dashboard-hub">
+              <!-- Overview -->
+              <div class="glass-panel hub-card active" data-tab="dashboard" style="border-color:var(--primary); background:rgba(59,130,246,0.08);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                  <i data-lucide="layout-dashboard" class="main-icon"></i>
+                  <span class="badge" style="background:var(--primary); color:white; font-size:0.6rem;">CURRENT</span>
+                </div>
+                <div>
+                  <div class="hub-card-title">SYSTEM OVERVIEW</div>
+                  <div class="hub-card-desc">Real-time integrity monitor and protocol status overview.</div>
+                </div>
+              </div>
+
+              <!-- Official Ballot -->
+              <div class="glass-panel hub-card" data-tab="booth">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                  <i data-lucide="vote" class="main-icon" style="color:var(--accent);"></i>
+                  <span class="badge" style="background:rgba(245,158,11,0.1); color:var(--accent); border:1px solid var(--accent);">SECURE</span>
+                </div>
+                <div>
+                  <div class="hub-card-title">OFFICIAL BALLOT</div>
+                  <div class="hub-card-desc">Cast your vote securely using the encrypted ballot terminal.</div>
+                </div>
+                <i data-lucide="arrow-right" class="hub-card-arrow"></i>
+              </div>
+
+              <!-- Timeline -->
+              <div class="glass-panel hub-card" data-tab="details">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                  <i data-lucide="calendar" class="main-icon" style="color:var(--primary);"></i>
+                  <span class="badge" style="background:rgba(59,130,246,0.1); color:var(--primary); border:1px solid var(--primary);">TIMELINE</span>
+                </div>
+                <div>
+                  <div class="hub-card-title">ELECTION DETAILS</div>
+                  <div class="hub-card-desc">Verify location, schedule, and the official purpose of this vote.</div>
+                </div>
+                <i data-lucide="arrow-right" class="hub-card-arrow"></i>
+              </div>
+
+              <!-- Guidelines -->
+              <div class="glass-panel hub-card" data-tab="guidelines">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                  <i data-lucide="file-check" class="main-icon" style="color:var(--success);"></i>
+                  <span class="badge" style="background:rgba(34,197,94,0.1); color:var(--success); border:1px solid var(--success);">READY</span>
+                </div>
+                <div>
+                  <div class="hub-card-title">SECURITY GUIDE</div>
+                  <div class="hub-card-desc">Read the mandatory guidelines for a high-integrity session.</div>
+                </div>
+                <i data-lucide="arrow-right" class="hub-card-arrow"></i>
+              </div>
+
+              <!-- Assistant -->
+              <div class="glass-panel hub-card" data-tab="assistant">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                  <i data-lucide="bot" class="main-icon" style="color:var(--text-main);"></i>
+                  <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--text-secondary); border:1px solid var(--border);">AI ACTIVE</span>
+                </div>
+                <div>
+                  <div class="hub-card-title">SYSTEM ASSISTANT</div>
+                  <div class="hub-card-desc">Get personalized help and information about the candidates.</div>
+                </div>
+                <i data-lucide="arrow-right" class="hub-card-arrow"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- DATA INTEGRITY CARD -->
+          <div class="glass-panel" style="background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.3); padding:1.5rem !important; margin-bottom:1.5rem;">
+            <h3 style="color:var(--primary); font-weight:900; font-size:0.9rem; letter-spacing:2px; text-transform:uppercase; display:flex; align-items:center; gap:0.5rem; margin-bottom:1.25rem;">
+              <i data-lucide="shield-check" style="width:18px; height:18px;"></i> DATA INTEGRITY ASSURANCE
+            </h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0.75rem;">
+              <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem; background:rgba(34,197,94,0.08); border-radius:10px; border:1px solid rgba(34,197,94,0.2);">
+                <i data-lucide="lock" style="width:18px; color:var(--success); flex-shrink:0;"></i>
+                <div>
+                  <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:1px;">ENCRYPTION</div>
+                  <div style="font-weight:900; color:var(--success); font-size:0.85rem;">AES-256 BIT</div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem; background:rgba(59,130,246,0.08); border-radius:10px; border:1px solid rgba(59,130,246,0.2);">
+                <i data-lucide="database" style="width:18px; color:var(--primary); flex-shrink:0;"></i>
+                <div>
+                  <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:1px;">STORAGE</div>
+                  <div style="font-weight:900; color:var(--primary); font-size:0.85rem;">LOCAL SECURE</div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem; background:rgba(245,158,11,0.08); border-radius:10px; border:1px solid rgba(245,158,11,0.2);">
+                <i data-lucide="eye-off" style="width:18px; color:var(--accent); flex-shrink:0;"></i>
+                <div>
+                  <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:1px;">ANONYMITY</div>
+                  <div style="font-weight:900; color:var(--accent); font-size:0.85rem;">GUARANTEED</div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem; background:rgba(34,197,94,0.08); border-radius:10px; border:1px solid rgba(34,197,94,0.2);">
+                <i data-lucide="hash" style="width:18px; color:var(--success); flex-shrink:0;"></i>
+                <div>
+                  <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:1px;">TAMPER PROOF</div>
+                  <div style="font-weight:900; color:var(--success); font-size:0.85rem;">HASH VERIFIED</div>
+                </div>
+              </div>
+            </div>
+          </div>
+  </div>
+
+          <!-- REGISTERED ENTITIES -->
+          <div class="glass-panel" style="padding:1.25rem !important;">
+            <h3 style="color:var(--primary); font-weight:900; font-size:0.85rem; letter-spacing:2px; text-transform:uppercase; display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+              <i data-lucide="users" style="width:16px;"></i> REGISTERED ENTITIES ON BALLOT
+            </h3>
+            <div id="dash-team-list" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="voter-bottom-nav" id="voter-bottom-nav">
+      <div class="bottom-nav-item active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i><span>OVERVIEW</span></div>
+      <div class="bottom-nav-item" data-tab="booth"><i data-lucide="vote"></i><span>BALLOT</span></div>
+      <div class="bottom-nav-item" data-tab="details"><i data-lucide="calendar"></i><span>TIME</span></div>
+      <div class="bottom-nav-item" data-tab="guidelines"><i data-lucide="file-check"></i><span>GUIDE</span></div>
+      <div class="bottom-nav-item" data-tab="assistant"><i data-lucide="bot"></i><span>HELP</span></div>
+    </nav>
+  </section>
+
+  <!-- RESULTS SCREEN -->
+  <section id="results-screen" class="view-section">
+    <header class="app-header">
+      <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
+        <button class="btn btn-secondary btn-sm btn-nav-toggle" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="menu"></i></button>
+        <button class="btn btn-secondary btn-sm btn-back" title="Go Back" style="flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
+        <div class="logo" style="font-weight:800; font-size:clamp(0.85rem,3vw,1.4rem); display:flex; align-items:center; gap:0.5rem; white-space:nowrap; overflow:hidden;"><i data-lucide="gavel" class="text-primary" style="flex-shrink:0;"></i> <span style="overflow:hidden; text-overflow:ellipsis;">CERTIFIED RESULTS</span></div>
+      </div>
+    </header>
+
+    <div class="results-container">
+
+      <!-- WINNER HERO -->
+      <div class="glass-panel results-hero mb-2">
+        <div class="results-hero-glow"></div>
+        <p class="results-hero-label">CERTIFIED WINNER</p>
+        <div id="res-winner-logo" class="results-winner-logo"></div>
+        <h1 id="res-winner-name" class="results-winner-name">---</h1>
+        <div id="res-winner-votes" class="text-accent" style="font-size:clamp(1rem,3vw,1.5rem); font-weight:800; margin-top:0.75rem;">0 VOTES RECORDED</div>
+      </div>
+
+      <!-- 2-COL GRID: Chart + Standings -->
+      <div class="results-grid">
+
+        <!-- Distribution Chart -->
+        <div class="glass-panel p-1">
+          <h3 class="step-header">DISTRIBUTION</h3>
+          <canvas id="results-chart" style="max-height:280px; width:100%;"></canvas>
+          <div style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.25rem; display:flex; flex-direction:column; gap:0.4rem;">
+            <p id="res-el-title" style="font-weight:900; font-size:clamp(0.95rem,2vw,1.2rem);"></p>
+            <p id="res-el-type" style="font-size:0.9rem; color:var(--primary); font-weight:700;"></p>
+            <p id="res-el-date" style="font-size:0.85rem; color:var(--text-secondary);"></p>
+            <p id="res-el-reason" style="font-size:0.85rem; color:var(--text-secondary); font-style:italic;"></p>
+            <p id="res-total-votes" class="text-accent" style="font-weight:900; font-size:clamp(1.1rem,3vw,1.5rem); margin-top:0.5rem;"></p>
+          </div>
+        </div>
+
+        <!-- Official Standings -->
+        <div class="glass-panel p-1">
+          <h3 class="step-header">OFFICIAL STANDINGS</h3>
+          <div id="res-teams-breakdown" style="display:flex; flex-direction:column; gap:0.75rem; max-height:320px; overflow-y:auto;"></div>
+        </div>
+
+      </div><!-- /results-grid -->
+
+      <!-- DOWNLOAD ACTION BAR — full width, always below the grid -->
+      <div class="results-action-bar">
+        <button id="btn-download-report" class="btn btn-primary results-action-btn">
+          <i data-lucide="file-text"></i> DOWNLOAD PDF CERTIFICATE
+        </button>
+        <button id="btn-download-docx" class="btn btn-secondary results-action-btn">
+          <i data-lucide="file-text"></i> DOWNLOAD DOCX REPORT
+        </button>
+        <button id="btn-download-notice" class="btn btn-secondary results-action-btn">
+          <i data-lucide="image"></i> PUBLIC NOTICE (JPG)
+        </button>
+      </div>
+
+    </div><!-- /results-container -->
+  </section>
+
+
+  <!-- HIDDEN TICKET TEMPLATE -->
+  <div id="ticket-template" style="position:fixed; top:0; left:-10000px; background:white; color:black; width:800px; height:400px; display:flex; border:6px solid #0f172a; font-family:'Inter', sans-serif; z-index:-1000;">
+    <!-- Watermark (behind everything, does NOT overlap QR panel) -->
+    <img id="tpl-watermark" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.08; width:60%; z-index:0; pointer-events:none; filter:grayscale(1);">
+    <!-- LEFT INFO PANEL — logo lives HERE, never over the QR -->
+    <div style="flex:1; padding:25px 30px; border-right:3px dashed #94a3b8; display:flex; flex-direction:column; z-index:1;">
+      <!-- Logo at top of LEFT panel — zero overlap with QR -->
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+        <img id="tpl-logo" style="width:50px; height:50px; object-fit:contain; border-radius:6px; border:1px solid #e2e8f0; flex-shrink:0;">
+        <div>
+          <h2 id="tpl-title" style="margin:0; font-size:22px; font-weight:900; line-height:1.1;">ELECTION TITLE</h2>
+          <p id="tpl-type" style="margin:4px 0 0; color:#2563eb; font-weight:700; font-size:13px;">Type</p>
+        </div>
+      </div>
+      <div style="flex:1; font-size:14px; line-height: 1.4; margin-top: 10px;">
+        <p><strong>REASON:</strong> <span id="tpl-reason"></span></p>
+        <p><strong>TIMELINE:</strong> <span id="tpl-datetime"></span></p>
+        <p><strong>LOCATION:</strong> <span id="tpl-location"></span></p>
+        
+        <div style="display:flex; gap:10px; margin-top:15px;">
+          <div style="background:#2563eb; color:white; padding:8px 15px; border-radius:5px; font-size:10px; font-weight:800; letter-spacing:1px;">OPEN MAP</div>
+          <div style="background:#0f172a; color:white; padding:8px 15px; border-radius:5px; font-size:10px; font-weight:800; letter-spacing:1px;">ACCESS PORTAL</div>
+        </div>
+
+        <span id="tpl-loc-url" style="display:none;"></span>
+        <span id="tpl-app-url" style="display:none;"></span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+        <div style="padding:12px; background:#f1f5f9; border-radius:10px;">
+          <span style="font-size:10px; font-weight: 800; color: #64748b;">OFFICIAL VOTER ID</span><br><strong id="tpl-vid" style="font-size:22px; letter-spacing: 2px;">---</strong>
+        </div>
+        <div style="font-size:11px; color:#ef4444; font-weight:900; text-align:right; line-height: 1.2;">AUTHORIZED DOCUMENT<br>SECURE LOCAL LOCK ACTIVE</div>
+      </div>
+    </div>
+  <!-- RIGHT QR PANEL — completely clean, no overlapping elements -->
+    <div style="width:260px; padding:20px 20px 16px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f8fafc; z-index:1;">
+      <!-- White quiet zone wrapper — required by QR spec for reliable scanning -->
+      <div style="background:white; padding:10px; border-radius:4px; display:inline-block; line-height:0;">
+        <div id="tpl-qr"></div>
+      </div>
+      <p style="margin-top:10px; font-size:10px; color:#ef4444; font-weight:900; letter-spacing:1px; text-align:center;">DO NOT DUPLICATE</p>
+    </div>
+  </div>
+
+  <div id="notice-template" style="position: fixed; top: 0; left: -10000px; width: 1000px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 60px; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; z-index: -1000;">
+    <!-- Watermark Container -->
+    <div id="notice-watermark" style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; opacity:0.25; z-index:0; pointer-events:none; gap: 50px; padding: 100px;"></div>
+    
+    <div style="position:relative; z-index:1;">
+      <div style="text-align:center; margin-bottom: 30px;">
+        <img id="notice-app-logo" style="width:120px; height:120px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
+      </div>
+      <h1 style="text-align:center; letter-spacing:10px; font-size: 48px; font-weight: 900; border-bottom: 4px solid #3b82f6; display: inline-block; width: 100%; padding-bottom: 20px;">OFFICIAL PUBLIC NOTICE</h1>
+      <h2 id="notice-el-title" style="margin-top:40px; font-size: 36px; font-weight: 800;">TITLE</h2>
+      <p id="notice-el-meta" style="color:#94a3b8; font-size: 18px;"></p>
+      <p id="notice-el-reason" style="font-style:italic; margin-top:20px; color:#cbd5e1; font-size: 20px;"></p>
+      <div style="margin:40px 0; padding:40px; background:rgba(255,255,255,0.05); border-radius:20px; display:flex; justify-content:space-between; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="text-align:center;"><div id="notice-total-votes" style="font-size:5rem; font-weight:900; color:#f59e0b;">0</div><p style="font-weight: 800; letter-spacing: 2px;">TOTAL VOTES CAST</p></div>
+        <div style="text-align:center;"><div id="notice-winner-name" style="font-size:3rem; font-weight:900; color:#4ade80; max-width: 400px;">WINNER</div><p style="font-weight: 800; letter-spacing: 2px;">ELECTED REPRESENTATIVE</p></div>
+      </div>
+      <div id="notice-breakdown-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;"></div>
+      <p id="notice-timestamp" style="text-align:center; margin-top:50px; font-size:14px; color:#94a3b8; font-weight: 600;"></p>
+    </div>
+  </div>
+
+
+
+  <script>
+    // BULLETPROOF GLOBAL GPS ACTIVATION
+    function handleGpsCapture() {
+      console.log("Global Handshake Initiated...");
+      const gpsBtn = document.getElementById('id-btn-gps');
+      const originalHtml = gpsBtn ? gpsBtn.innerHTML : '';
+      const status = document.getElementById('gps-status');
+      const latField = document.getElementById('el-gps-lat');
+      const lngField = document.getElementById('el-gps-lng');
+
+      if (gpsBtn) {
+        gpsBtn.innerHTML = 'CAPTURING SECURE SIGNAL...';
+        gpsBtn.classList.add('btn-loading');
+      }
+
+      const triggerSuccess = (lat, lng) => {
+        if (latField) latField.value = lat;
+        if (lngField) lngField.value = lng;
+        if (status) {
+          status.style.display = 'block';
+          if (window.lucide) lucide.createIcons();
+        }
+        if (gpsBtn) {
+          gpsBtn.innerHTML = '<i data-lucide="map-pin" class="icon-primary"></i> GEOGRAPHIC LOCK SECURED';
+          gpsBtn.classList.remove('btn-loading');
+          if (window.lucide) lucide.createIcons();
+        }
+      };
+
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            triggerSuccess(pos.coords.latitude, pos.coords.longitude);
+            alert("HARDWARE LOCK SECURED: High-precision coordinates retrieved successfully.");
+          },
+          (err) => {
+            console.warn("Hardware blocked. Offering high-fidelity failover.");
+            if (gpsBtn) {
+              gpsBtn.innerHTML = originalHtml;
+              gpsBtn.classList.remove('btn-loading');
+              if (window.lucide) lucide.createIcons();
+            }
+            if (confirm("GEOLOCATION_SECURED: Browser sensor is restricted in this local environment. \n\nWould you like to use the Precision Map of India to lock your location instead?")) {
+              if (window.Organizer) Organizer.openMapPicker();
+            }
+          },
+          { timeout: 7000, enableHighAccuracy: true }
+        );
+      } else {
+        alert("SYSTEM_NOTICE: Browser environment restricted. Initializing Visual Map failover.");
+        if (window.Organizer) Organizer.openMapPicker();
+      }
+    }
+
+    // BULLETPROOF GLOBAL LOGO UPLOAD
+    async function handleLogoUpload(input, urlFieldId, previewId) {
+      console.log("Initiating High-Fidelity Logo Upload...");
+      if (input.files && input.files[0]) {
+        try {
+          const base64 = await DB.fileToBase64(input.files[0]);
+          const urlField = document.getElementById(urlFieldId);
+          const preview = document.getElementById(previewId);
+          
+          if (urlField) urlField.value = base64;
+          if (preview) {
+            preview.src = base64;
+            preview.style.display = 'block';
+          }
+          console.log("Logo Handshake Successful.");
+        } catch (err) {
+          console.error("LOGO_HANDSHAKE_ERROR:", err);
+          alert("CRITICAL: Media acquisition failed. Please ensure the image format is valid.");
+        }
+      }
+    }
+
+    // BULLETPROOF GLOBAL PROTOCOL ESTABLISHMENT
+    async function handleEstablishProtocol() {
+      console.log("Global Administrative Handshake Initiated...");
+      
+      const getVal = (id) => document.getElementById(id)?.value || '';
+      
+      const locUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        getVal('el-address') + ', ' + getVal('el-city') + ', ' + getVal('el-state') + ' ' + getVal('el-pincode')
+      )}`;
+
+      let logoUrl = getVal('el-logo-url') || 'https://via.placeholder.com/150';
+      if (logoUrl.startsWith('http')) {
+        console.log("Serializing External Asset for Protocol...");
+        logoUrl = await DB.urlToBase64(logoUrl);
+      }
+
+      const data = {
+        title: getVal('el-title') || 'Untitled',
+        type: getVal('el-type') || 'General',
+        reason: getVal('el-reason') || 'Official Directive',
+        location: {
+          state: getVal('el-state'),
+          city: getVal('el-city'),
+          pincode: getVal('el-pincode'),
+          address: getVal('el-address'),
+          lat: getVal('el-gps-lat') || '0',
+          lng: getVal('el-gps-lng') || '0',
+          mapUrl: locUrl
+        },
+        date: getVal('el-date'),
+        start: getVal('el-start'),
+        end: getVal('el-end'),
+        logo: logoUrl
+      };
+      
+      // Strict Validation
+      if (!data.date || !data.start || !data.end) {
+        return alert("CRITICAL: Polling Date and Timeline must be specified to establish the protocol.");
+      }
+
+      try {
+        DB.saveElection(data);
+        DB.setStatus('active');
+        
+        // Refresh UI via Organizer if available
+        if (window.Organizer) {
+          Organizer.renderState();
+        } else {
+          console.warn("Organizer module not fully initialized. Manual UI lock released.");
+          // Ensure the second panel is enabled manually if module failed
+          const teamsPanel = document.getElementById('teams-panel');
+          if (teamsPanel) {
+            teamsPanel.style.opacity = '1';
+            teamsPanel.style.pointerEvents = 'auto';
+          }
+        }
+        
+        alert("SUCCESS: Official Protocol Scope Established. You may now proceed to register participating entities.");
+      } catch (err) {
+        console.error("PROTOCOL_ESTABLISH_ERROR:", err);
+        alert("SYSTEM_ERROR: Failed to save protocol. Local storage may be full or restricted.");
+      }
+    }
+
+    // BULLETPROOF GLOBAL PARTICIPANT REGISTRATION
+    async function handleRegisterParticipant() {
+      console.log("Global Entity Enrollment Initiated...");
+      const getName = () => document.getElementById('team-name')?.value || '';
+      const getNum = () => document.getElementById('team-numeric')?.value || '';
+      
+      let logoUrl = document.getElementById('team-logo-url')?.value || 'https://via.placeholder.com/150';
+      if (logoUrl.startsWith('http')) {
+        console.log("Serializing Participant Asset...");
+        logoUrl = await DB.urlToBase64(logoUrl);
+      }
+
+      const team = {
+        name: getName(),
+        numeric: getNum(),
+        logo: logoUrl
+      };
+      
+      if (!team.name || !team.numeric) {
+        return alert("CRITICAL: Participant Name and Numeric Ballot ID are required for official registration.");
+      }
+
+      try {
+        const teams = DB.getTeams();
+        if (teams.find(t => t.numeric === team.numeric)) {
+          return alert("VIOLATION: Numeric Ballot ID must be unique. This ID is already assigned.");
+        }
+
+        DB.addTeam(team);
+        
+        // Manual Field Clearing (Logical Containers do not have .reset())
+        const clearFields = () => {
+          const name = document.getElementById('team-name');
+          const num = document.getElementById('team-numeric');
+          const logo = document.getElementById('team-logo-url');
+          const preview = document.getElementById('team-logo-preview');
+          if (name) name.value = '';
+          if (num) num.value = '';
+          if (logo) logo.value = '';
+          if (preview) preview.style.display = 'none';
+        };
+        
+        clearFields();
+        
+        if (window.Organizer) {
+          Organizer.renderTeams();
+        } else {
+          console.warn("UI_REFRESH_NOTICE: Organizer module not bound to global scope. Rerender skipped.");
+        }
+        
+        alert(`SUCCESS: '${team.name}' has been officially registered under Ballot ID ${team.numeric}.`);
+      } catch (err) {
+        console.error("PARTICIPANT_REG_ERROR:", err);
+        // Fallback: If logo serialization fails, try one last time with original link
+        try {
+          const teamFallback = { ...team, logo: document.getElementById('team-logo-url')?.value || 'https://via.placeholder.com/150' };
+          DB.addTeam(teamFallback);
+          
+          const nameField = document.getElementById('team-name');
+          const numField = document.getElementById('team-numeric');
+          if (nameField) nameField.value = '';
+          if (numField) numField.value = '';
+
+          if (window.Organizer) Organizer.renderTeams();
+          alert(`SUCCESS (Limited Assets): '${team.name}' registered. some external images may not appear on tickets.`);
+        } catch (innerErr) {
+          alert(`CRITICAL_DATABASE_ERROR: ${innerErr.message}. Protocol state may be restricted or storage full.`);
+        }
+      }
+    }
+
+    async function handleUpdateAccessCode() {
+      const newCode = document.getElementById('new-org-code')?.value.trim();
+      if (!newCode) return alert("Please enter a valid security code.");
+      
+      if (confirm(`Update security protocol to [${newCode}] and sync with Cloud?`)) {
+        if (typeof updateOrgCode === 'function') {
+          await updateOrgCode(newCode);
+          document.getElementById('new-org-code').value = '';
+          alert("SECURITY_PROTOCOL_UPDATED: New code is active and synchronized.");
+        }
+      }
+    }
+  </script>
+
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/assistant.js"></script>
+  <script src="js/organizer.js"></script>
+  <script src="js/voter.js"></script>
+  <script src="js/results.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
