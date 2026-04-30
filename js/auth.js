@@ -139,6 +139,16 @@ const Auth = {
         return;
       }
 
+    // ── MASTER RECOVERY BYPASS ──
+    // If the email doesn't send instantly, show the code on screen for the owner.
+    const recoveryTimer = setTimeout(() => {
+      console.warn("EMAIL_LATENCY_DETECTED: Triggering on-screen recovery protocol.");
+      const msg = `MASTER_RECOVERY_PROTOCOL: Cloud Mailers are currently congested.\n\nSince you are securely signed in as ${this.user.email}, here is your Organizer Code: [ ${currentCode} ]\n\nPlease write this down immediately.`;
+      alert(msg);
+      if(btn) { btn.disabled = false; btn.innerHTML = 'FORGOT CODE? SEND TO GMAIL'; }
+    }, 2000);
+
+    try {
       // ── PRODUCTION MODE: EmailJS Delivery ──
       if (typeof emailjs !== 'undefined') {
         await emailjs.send('service_faw00u8', 'sggivkl', {
@@ -148,20 +158,23 @@ const Auth = {
           reply_to: this.user.email,
           official_gmail: adminEmail
         });
+        clearTimeout(recoveryTimer);
         alert(`SUCCESS: Access protocol sent to ${adminEmail}. Check your inbox.`);
       } else {
         throw new Error("EmailJS not initialized");
       }
-      // Master Recovery Bypass: Show code directly if cloud/mailto are slow
-      const msg = `MASTER_RECOVERY_PROTOCOL: Cloud Mailers are currently congested.\n\nSince you are securely signed in, here is your Organizer Code: [ ${currentCode} ]\n\nPlease write this down and enter it in the login box.`;
-      alert(msg);
-      
+    } catch (err) {
+      clearTimeout(recoveryTimer);
       console.error("Email Protocol Warning:", err);
-      // Fallback to mailto protocol
-      const body = `Organizer: ${this.user.email}%0ACurrent Code: ${currentCode}%0A%0AIdentity verified via Google Sign-In.`;
+      
+      // Final Fallback: Direct Reveal
+      const msg = `INSTANT_RECOVERY_ACTIVE: Email delivery is currently restricted.\n\nYour Organizer Access Code is: [ ${currentCode} ]`;
+      alert(msg);
+
+      // Attempt mailto as last resort
+      const body = `Organizer: ${this.user.email}%0ACurrent Code: ${currentCode}`;
       window.location.href = `mailto:${adminEmail}?subject=SecureVote Code Recovery&body=${body}`;
-    }
- finally {
+    } finally {
       if(btn) { btn.disabled = false; btn.innerHTML = 'FORGOT CODE? SEND TO GMAIL'; }
       if (window.lucide) lucide.createIcons();
     }
