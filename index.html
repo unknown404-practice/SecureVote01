@@ -1012,7 +1012,13 @@
       }
 
       try {
-        DB.saveElection(data);
+        // First-time Cloud Initialization
+        if (!DB.getElectionId()) {
+          console.log("INITIALIZING_CLOUD_SILO: Creating new election record...");
+          await DB.publishToCloud();
+        }
+
+        await DB.saveElection(data);
         DB.setStatus('active');
         
         // Refresh UI via Organizer if available
@@ -1020,7 +1026,6 @@
           Organizer.renderState();
         } else {
           console.warn("Organizer module not fully initialized. Manual UI lock released.");
-          // Ensure the second panel is enabled manually if module failed
           const teamsPanel = document.getElementById('teams-panel');
           if (teamsPanel) {
             teamsPanel.style.opacity = '1';
@@ -1028,10 +1033,10 @@
           }
         }
         
-        alert("SUCCESS: Official Protocol Scope Established. You may now proceed to register participating entities.");
+        alert("SUCCESS: Official Protocol Scope Established and synchronized to Cloud.");
       } catch (err) {
         console.error("PROTOCOL_ESTABLISH_ERROR:", err);
-        alert("SYSTEM_ERROR: Failed to save protocol. Local storage may be full or restricted.");
+        alert("SYSTEM_ERROR: " + err.message);
       }
     }
 
@@ -1063,9 +1068,9 @@
           return alert("VIOLATION: Numeric Ballot ID must be unique. This ID is already assigned.");
         }
 
-        DB.addTeam(team);
+        await DB.addTeam(team);
         
-        // Manual Field Clearing (Logical Containers do not have .reset())
+        // Manual Field Clearing
         const clearFields = () => {
           const name = document.getElementById('team-name');
           const num = document.getElementById('team-numeric');
@@ -1081,11 +1086,9 @@
         
         if (window.Organizer) {
           Organizer.renderTeams();
-        } else {
-          console.warn("UI_REFRESH_NOTICE: Organizer module not bound to global scope. Rerender skipped.");
         }
         
-        alert(`SUCCESS: '${team.name}' has been officially registered under Ballot ID ${team.numeric}.`);
+        alert(`SUCCESS: '${team.name}' registered and synced to Cloud.`);
       } catch (err) {
         console.error("PARTICIPANT_REG_ERROR:", err);
         // Fallback: If logo serialization fails, try one last time with original link

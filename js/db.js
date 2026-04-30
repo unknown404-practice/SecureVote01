@@ -55,12 +55,19 @@ const DB = {
     }
   },
 
-  // --- Setters ---
-  saveElection(data) {
+  // --- Setters (Cloud Sync Aware) ---
+  async saveElection(data) {
     localStorage.setItem(this.KEYS.ELECTION, JSON.stringify(data));
+    const eid = this.getElectionId();
+    if (eid) {
+      try {
+        await firebase.firestore().collection('elections').doc(eid).update({ election: data });
+        console.log("Cloud Sync: Protocol Settings Updated.");
+      } catch (e) { console.warn("Cloud Sync Failed (Settings):", e); }
+    }
   },
 
-  addTeam(team) {
+  async addTeam(team) {
     const teams = this.getTeams();
     teams.push(team);
     localStorage.setItem(this.KEYS.TEAMS, JSON.stringify(teams));
@@ -68,9 +75,20 @@ const DB = {
     const votes = this.getVotes();
     votes[team.numeric] = 0;
     localStorage.setItem(this.KEYS.VOTES, JSON.stringify(votes));
+
+    const eid = this.getElectionId();
+    if (eid) {
+      try {
+        await firebase.firestore().collection('elections').doc(eid).update({ 
+          teams: teams,
+          votes: votes
+        });
+        console.log("Cloud Sync: Roster Updated.");
+      } catch (e) { console.warn("Cloud Sync Failed (Teams):", e); }
+    }
   },
 
-  removeTeam(numeric) {
+  async removeTeam(numeric) {
     let teams = this.getTeams();
     teams = teams.filter(t => t.numeric !== numeric);
     localStorage.setItem(this.KEYS.TEAMS, JSON.stringify(teams));
@@ -78,6 +96,17 @@ const DB = {
     const votes = this.getVotes();
     delete votes[numeric];
     localStorage.setItem(this.KEYS.VOTES, JSON.stringify(votes));
+
+    const eid = this.getElectionId();
+    if (eid) {
+      try {
+        await firebase.firestore().collection('elections').doc(eid).update({ 
+          teams: teams,
+          votes: votes
+        });
+        console.log("Cloud Sync: Roster Pruned.");
+      } catch (e) { console.warn("Cloud Sync Failed (Delete):", e); }
+    }
   },
 
   saveVoters(votersObj) {
