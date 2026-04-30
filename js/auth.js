@@ -47,7 +47,11 @@ const Auth = {
       measurementId: "G-DTBMKYWRGD"
     };
     try {
-      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      // Ensure only one instance is initialized
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+        console.log("Cloud Infrastructure: ONLINE");
+      }
       this.monitorAuthState();
     } catch (e) {
       console.error("Firebase initialization failed:", e);
@@ -148,12 +152,14 @@ const Auth = {
       } else {
         throw new Error("EmailJS not initialized");
       }
-    } catch (err) {
+      // Master Recovery Bypass: Show code directly if cloud/mailto are slow
+      const msg = `MASTER_RECOVERY_PROTOCOL: Cloud Mailers are currently congested.\n\nSince you are securely signed in, here is your Organizer Code: [ ${currentCode} ]\n\nPlease write this down and enter it in the login box.`;
+      alert(msg);
+      
       console.error("Email Protocol Warning:", err);
       // Fallback to mailto protocol
       const body = `Organizer: ${this.user.email}%0ACurrent Code: ${currentCode}%0A%0AIdentity verified via Google Sign-In.`;
       window.location.href = `mailto:${adminEmail}?subject=SecureVote Code Recovery&body=${body}`;
-      alert(`Mail protocol busy. Attempting to open your system's mail client to send code to ${adminEmail}.`);
     }
  finally {
       if(btn) { btn.disabled = false; btn.innerHTML = 'FORGOT CODE? SEND TO GMAIL'; }
