@@ -128,16 +128,15 @@ const Auth = {
     const btn = document.getElementById('btn-forgot-code-action');
     if(btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> SENDING...'; }
 
-    try {
-      // ── DEV MODE: Local Discovery ──
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      
-      if (isLocal) {
-        console.log("DEV_MODE_DISCOVERY: Bypassing mail protocol for local session.");
-        alert(`[DEV MODE] Access Protocol Recovered.\n\nYour Organizer Code is: ${currentCode}\n\n(This code is only shown directly when running on localhost)`);
-        if(btn) { btn.disabled = false; btn.innerHTML = 'FORGOT CODE? SEND TO GMAIL'; }
-        return;
-      }
+    // ── DEV MODE: Local Discovery ──
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (isLocal) {
+      console.log("DEV_MODE_DISCOVERY: Bypassing mail protocol for local session.");
+      alert(`[DEV MODE] Access Protocol Recovered.\n\nYour Organizer Code is: ${currentCode}\n\n(This code is only shown directly when running on localhost)`);
+      if(btn) { btn.disabled = false; btn.innerHTML = 'FORGOT CODE? SEND TO GMAIL'; }
+      return;
+    }
 
     // ── MASTER RECOVERY BYPASS ──
     // If the email doesn't send instantly, show the code on screen for the owner.
