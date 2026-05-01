@@ -262,6 +262,14 @@ const Organizer = {
         if (!doc.exists) return;
         
         const data = doc.data();
+        
+        // SECURITY SHIELD: Check ownership
+        if (data.organizerUid !== firebase.auth().currentUser.uid) {
+          console.error("SECURITY_VIOLATION: UID Mismatch. Access Terminated.");
+          this.stopLiveCounting();
+          return;
+        }
+
         const votes = data.votes || {};
         const teams = data.teams || [];
         const area = document.getElementById('live-counting-area');

@@ -75,6 +75,8 @@ const Auth = {
             localStorage.setItem(ORGANIZER_CODE_KEY, DEFAULT_ORGANIZER_CODE);
             console.log("Onboarding: New Organizer Profile Created.");
           }
+          // Restore most recent election from Cloud for this user
+          await DB.restoreSession();
         } catch (e) {
           console.error("Sync Error:", e);
         }

@@ -176,6 +176,34 @@ const DB = {
     return eid;
   },
 
+  async restoreSession() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    try {
+      const snapshot = await firebase.firestore().collection('elections')
+        .where('organizerUid', '==', user.uid)
+        .orderBy('publishedAt', 'desc')
+        .limit(1)
+        .get();
+
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        this.setElectionId(data.id);
+        localStorage.setItem(this.KEYS.ELECTION, JSON.stringify(data.election));
+        localStorage.setItem(this.KEYS.TEAMS, JSON.stringify(data.teams || []));
+        localStorage.setItem(this.KEYS.VOTERS, JSON.stringify(data.voters || {}));
+        localStorage.setItem(this.KEYS.VOTES, JSON.stringify(data.votes || {}));
+        this.setStatus(data.status || 'setup');
+        console.log("Cloud Protocol: Session Restored for UID:", user.uid);
+        return true;
+      }
+    } catch (e) {
+      console.warn("Cloud Restore Failed:", e);
+    }
+    return false;
+  },
+
   // --- Voting Logic (Cloud Enhanced) ---
   async verifyVoter(voterId, electionId) {
     if (!electionId) return { valid: false, reason: "SYSTEM_ERROR: No active protocol detected." };
@@ -191,15 +219,17 @@ const DB = {
       if (voters[voterId].voted) return { valid: false, reason: "VIOLATION: This Voter ID has already been utilized. Multi-voting is strictly prohibited." };
       
       const now = new Date();
-      const startTime = new Date(`${el.date}T${el.start}`);
-      const endTime = new Date(`${el.date}T${el.end}`);
+      const eData = el.election; // The nested election object
+      const startTime = new Date(`${eData.date}T${eData.start}`);
+      const endTime = new Date(`${eData.date}T${eData.end}`);
 
-      if (now < startTime) return { valid: false, reason: `Voting protocol has not commenced. Scheduled to open at ${el.start}.` };
-      if (now > endTime) return { valid: false, reason: `Voting protocol has concluded. Scheduled window closed at ${el.end}.` };
+      if (now < startTime) return { valid: false, reason: `Voting protocol has not commenced. Scheduled to open at ${eData.start}.` };
+      if (now > endTime) return { valid: false, reason: `Voting protocol has concluded. Scheduled window closed at ${eData.end}.` };
 
-      return { valid: true, electionData: el };
+      return { valid: true, electionData: eData, cloudData: el };
     } catch (e) {
-      return { valid: false, reason: "CONNECTION_ERROR: Could not reach the election database. Check your internet." };
+      console.error("Voter Verify Error:", e);
+      return { valid: false, reason: "CONNECTION_ERROR: Could not reach the election database." };
     }
   },
 
@@ -218,12 +248,10 @@ const DB = {
         const data = doc.data();
         if (data.voters[voterId].voted) throw "Already voted (Transaction check)!";
 
-        // Mark voter as done
         const updatedVoters = { ...data.voters };
         updatedVoters[voterId].voted = true;
         updatedVoters[voterId].timestamp = new Date().toISOString();
 
-        // Increment vote count
         const updatedVotes = { ...data.votes };
         updatedVotes[teamNumeric] = (updatedVotes[teamNumeric] || 0) + 1;
 
