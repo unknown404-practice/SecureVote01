@@ -275,12 +275,11 @@ const Organizer = {
         const votes = data.votes || {};
         const teams = data.teams || [];
 
-        // HARD SYNC BRIDGE: Inject Cloud data into Local Storage for UI consistency
-        if (teams.length > 0 && DB.getTeams().length === 0) {
-          console.log("CLOUD_SYNC: Syncing remote roster to local storage...");
+        // MANDATORY CLOUD SYNC: Always prioritize cloud data for UI consistency
+        if (teams.length > 0) {
           localStorage.setItem(DB.KEYS.TEAMS, JSON.stringify(teams));
           localStorage.setItem(DB.KEYS.VOTES, JSON.stringify(votes));
-          this.renderTeams(); // Re-render the middle column immediately
+          this.renderTeams(); // Force middle column update
         }
 
         const area = document.getElementById('live-counting-area');
