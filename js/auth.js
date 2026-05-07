@@ -6,7 +6,7 @@
 
 // ── ORGANIZER CODE SECURITY ──────────────────────────────────────────────────
 const ORGANIZER_CODE_KEY = 'sv_v2_org_code';
-const DEFAULT_ORGANIZER_CODE = 'ORG-2026';
+const DEFAULT_ORGANIZER_CODE = 'ORG-2026'; // LOCKED OFFICIAL CODE
 
 function getOrgCode() {
   return localStorage.getItem(ORGANIZER_CODE_KEY) || DEFAULT_ORGANIZER_CODE;
@@ -64,13 +64,15 @@ const Auth = {
           const docRef = firebase.firestore().collection('organizers').doc(user.uid);
           const doc = await docRef.get();
           if (doc.exists && doc.data().orgCode) {
+            console.log("Cloud Protocol: Master Code Verified.");
             localStorage.setItem(ORGANIZER_CODE_KEY, doc.data().orgCode);
           } else {
-            // NEW USER: Initialize with default code in cloud
-            await docRef.set({
+            // NEW USER: Permanently lock ORG-2026 in cloud
+            console.log("Cloud Protocol: Initializing Official Lock...");
+            await firebase.firestore().collection('elections').doc(eid).set({
               orgCode: DEFAULT_ORGANIZER_CODE,
-              email: user.email,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              organizerUid: user.uid,
+              lastSynced: new Date().toISOString()
             }, { merge: true });
             localStorage.setItem(ORGANIZER_CODE_KEY, DEFAULT_ORGANIZER_CODE);
             console.log("Onboarding: New Organizer Profile Created.");
