@@ -451,7 +451,7 @@ const Organizer = {
       ticketOnPage++;
     }
 
-    DB.saveVoters(voters);
+    await DB.saveVoters(voters);
     doc.save(`${el.title.replace(/\s+/g, '_')}_Official_Print_Sheet.pdf`);
     alert(`Successfully generated ${count} tickets. You can now download them as individual PDFs in a ZIP.`);
   },

@@ -109,8 +109,21 @@ const DB = {
     }
   },
 
-  saveVoters(votersObj) {
+  async saveVoters(votersObj) {
     localStorage.setItem(this.KEYS.VOTERS, JSON.stringify(votersObj));
+    
+    // CLOUD SYNC: Ensure new tickets are pushed to the database immediately
+    const eid = this.getElectionId();
+    if (eid) {
+      try {
+        await firebase.firestore().collection('elections').doc(eid).update({ 
+          voters: votersObj 
+        });
+        console.log("Cloud Sync: Voter Roster Verified & Uploaded.");
+      } catch (e) {
+        console.warn("Cloud Sync Failed (Voters):", e);
+      }
+    }
   },
 
   setStatus(status) {
