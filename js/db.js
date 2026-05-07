@@ -126,6 +126,36 @@ const DB = {
     }
   },
 
+  async publishToCloud() {
+    const el = this.getElection();
+    if (!el) return null;
+    
+    const existingId = this.getElectionId();
+    
+    try {
+      // Use existing ID if we have one, otherwise create new
+      const ref = existingId 
+        ? firebase.firestore().collection('elections').doc(existingId)
+        : firebase.firestore().collection('elections').doc();
+        
+      const eid = ref.id;
+      
+      await ref.set({
+        ...el,
+        id: eid,
+        voters: this.getVoters(),
+        votes: this.getVotes(),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }); // Use merge to prevent data loss
+      
+      this.setElectionId(eid);
+      return eid;
+    } catch (e) {
+      console.error("Cloud Publish Failed:", e);
+      throw e;
+    }
+  },
+
   setStatus(status) {
     localStorage.setItem(this.KEYS.STATUS, status);
   },
@@ -181,7 +211,7 @@ const DB = {
       teams: this.getTeams(),
       voters: this.getVoters(),
       votes: this.getVotes(),
-      status: 'active',
+      status: this.getStatus() || 'active',
       publishedAt: new Date().toISOString()
     };
 
