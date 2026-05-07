@@ -69,7 +69,7 @@ const Auth = {
           } else {
             // NEW USER: Permanently lock ORG-2026 in cloud
             console.log("Cloud Protocol: Initializing Official Lock...");
-            await firebase.firestore().collection('elections').doc(eid).set({
+            await docRef.set({
               orgCode: DEFAULT_ORGANIZER_CODE,
               organizerUid: user.uid,
               lastSynced: new Date().toISOString()
@@ -165,9 +165,6 @@ const PortalGuard = {
         <div id="org-code-error" style="color:var(--error); font-size:0.8rem; font-weight:700; text-align:center; margin-bottom:0.75rem; display:none;">⚠️ Access denied.</div>
         <button id="org-code-submit" class="btn btn-primary w-100" style="margin-bottom:0.75rem;">VERIFY & ENTER</button>
         <button id="org-code-cancel" class="btn btn-secondary w-100">CANCEL</button>
-        <div style="margin-top:1.25rem; text-align:center; border-top:1px solid rgba(255,255,255,0.1); pt-3;">
-          <button id="btn-forgot-code-action" class="btn btn-secondary btn-sm w-100" style="color:var(--primary); margin-top:1rem;">FORGOT CODE? RECOVER NOW</button>
-          <p style="color:var(--text-secondary); font-size:0.7rem; margin-top:0.75rem; opacity:0.8;">First time? Try the default code: <span style="color:var(--primary); font-weight:700;">ORG-2026</span></p>
         </div>
       </div>
     `;
