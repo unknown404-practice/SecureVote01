@@ -14,6 +14,13 @@ const App = {
       this.hideSplash();
     };
 
+    // PRIVACY WIPE: Ensure sensitive fields are clean on boot
+    setTimeout(() => {
+      const vid = document.getElementById('voter-id-input');
+      if (vid) vid.value = '';
+      localStorage.removeItem('sv_v2_last_voter_id');
+    }, 100);
+
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
     // Module Initialization with Fault Isolation
