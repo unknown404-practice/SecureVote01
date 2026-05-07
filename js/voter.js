@@ -203,7 +203,7 @@ const Voter = {
     });
 
     document.querySelectorAll('.btn-back-to-booth').forEach(btn => {
-      btn.addEventListener('click', () => this.switchTab('booth'));
+      btn.addEventListener('click', () => this.showDashboard());
     });
 
     // Exit booth
