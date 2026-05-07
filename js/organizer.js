@@ -127,16 +127,23 @@ const Organizer = {
 
     const el = DB.getElection();
     const status = DB.getStatus();
+    const eid = DB.getElectionId();
 
     // Authoritative Lifecycle: Always enable participant and live-count engines
     this.renderTeams();
     this.startLiveCounting();
 
     if (el) {
-      const setVal = (id, val) => {
-        const field = document.getElementById(id);
-        if (field) field.value = val;
-      };
+      const setVal = (id, val) => { const e = document.getElementById(id); if (e) e.value = val || ''; };
+      
+      // Update Establish Button State
+      const btnEstablish = document.getElementById('btn-establish-protocol');
+      if (btnEstablish && eid) {
+        btnEstablish.disabled = true;
+        btnEstablish.innerHTML = '<i data-lucide="shield-check"></i> PROTOCOL ESTABLISHED & LOCKED';
+        btnEstablish.style.background = 'var(--success)';
+        btnEstablish.style.opacity = '0.7';
+      }
 
       setVal('el-title', el.title);
       setVal('el-type', el.type);
@@ -157,7 +164,7 @@ const Organizer = {
       }
     }
 
-    if (status === 'published') {
+    if (status === 'COMPLETED') {
       const grid = document.querySelector('#organizer-screen .dashboard-grid');
       if (grid) {
         grid.innerHTML = `

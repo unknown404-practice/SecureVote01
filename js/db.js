@@ -126,36 +126,6 @@ const DB = {
     }
   },
 
-  async publishToCloud() {
-    const el = this.getElection();
-    if (!el) return null;
-    
-    const existingId = this.getElectionId();
-    
-    try {
-      // Use existing ID if we have one, otherwise create new
-      const ref = existingId 
-        ? firebase.firestore().collection('elections').doc(existingId)
-        : firebase.firestore().collection('elections').doc();
-        
-      const eid = ref.id;
-      
-      await ref.set({
-        ...el,
-        id: eid,
-        voters: this.getVoters(),
-        votes: this.getVotes(),
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true }); // Use merge to prevent data loss
-      
-      this.setElectionId(eid);
-      return eid;
-    } catch (e) {
-      console.error("Cloud Publish Failed:", e);
-      throw e;
-    }
-  },
-
   setStatus(status) {
     localStorage.setItem(this.KEYS.STATUS, status);
   },
@@ -193,11 +163,11 @@ const DB = {
     localStorage.setItem(this.KEYS.ELECTION_ID, id);
   },
 
+  // MASTER CLOUD HANDSHAKE: Consolidated V3
   async publishToCloud() {
     const user = firebase.auth().currentUser;
     if (!user) throw new Error("Authentication Required: You must be signed in with Google to publish.");
 
-    // Generate ID if not exists
     let eid = this.getElectionId();
     if (!eid) {
       eid = `EL-${user.uid.substring(0,5)}-${Date.now()}`;
@@ -215,7 +185,8 @@ const DB = {
       publishedAt: new Date().toISOString()
     };
 
-    await firebase.firestore().collection('elections').doc(eid).set(data);
+    // Use .set() with merge to ensure it works for both initial setup and final results
+    await firebase.firestore().collection('elections').doc(eid).set(data, { merge: true });
     return eid;
   },
 
@@ -255,13 +226,11 @@ const DB = {
       const doc = await firebase.firestore().collection('elections').doc(electionId).get();
       if (!doc.exists) return { valid: false, reason: "INVALID_PROTOCOL: This election ID does not exist in the official records." };
       
-      // ── DEMO / TEST OVERRIDE ───────────────────────────────────────────
-      // If we are in the middle of a demo and it's before the scheduled time,
-      // allow the verification to proceed for a seamless review experience.
+      const el = doc.data();
+      const voters = el.voters || {};
       const isDemoBypass = localStorage.getItem('sv_v2_demo_mode') === 'true';
       
       if (!voters[voterId]) {
-        // EMERGENCY LOCAL FALLBACK: Check if this ID exists locally and inject it
         const localVoters = this.getVoters();
         if (localVoters[voterId]) {
           console.log("EMERGENCY_SYNC: ID found locally. Injecting to cloud...");
