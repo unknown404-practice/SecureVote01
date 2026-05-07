@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureVote 01 | Executive Pitch</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #ffffff;
+            --card: rgba(255, 255, 255, 0.7);
+            --primary: #0062ff;
+            --secondary: #00d2ff;
+            --accent: #ff9d00;
+            --text: #050a14;
+            --text-dim: #5c6b89;
+            --shadow: 0 40px 100px -20px rgba(0, 98, 255, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(210,100%,98%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(190,100%,96%,1) 0, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(210,100%,98%,1) 0, transparent 50%);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            perspective: 2000px;
+        }
+
+        .presentation-container {
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2vw;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.1) translateZ(200px) rotateY(10deg);
+            transition: 
+                transform 1.4s cubic-bezier(0.645, 0.045, 0.355, 1),
+                opacity 1s cubic-bezier(0.645, 0.045, 0.355, 1),
+                filter 1s ease;
+            filter: blur(30px) saturate(0%);
+            will-change: transform, opacity, filter;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1) translateZ(0px) rotateY(0deg);
+            filter: blur(0px) saturate(100%);
+        }
+
+        .slide.prev {
+            opacity: 0;
+            transform: scale(0.9) translateZ(-400px) rotateY(-10deg);
+            filter: blur(20px) saturate(0%);
+        }
+
+        .slide-content {
+            max-width: 95vw;
+            width: 100%;
+            background: var(--card);
+            backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: var(--shadow);
+            display: flex;
+            overflow: hidden;
+            height: 85vh;
+            transition: all 0.5s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .slide-content { flex-direction: column; height: 90vh; }
+            .text-side { padding: 2rem !important; }
+            .image-side { height: 40% !important; }
+            h1 { font-size: 2.5rem !important; }
+        }
+
+        .text-side {
+            flex: 1;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .image-side {
+            flex: 1.2;
+            position: relative;
+            background-color: #ffffff;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            animation: pan 20s infinite alternate linear;
+        }
+
+        @keyframes pan {
+            from { transform: scale(1.05) translateX(-1%); }
+            to { transform: scale(1.05) translateX(1%); }
+        }
+
+        h1 {
+            font-size: clamp(2rem, 4.5vw, 4.5rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+
+        .author-tag {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .author-tag::before {
+            content: '';
+            width: 40px;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        h2 {
+            font-size: clamp(1.5rem, 3vw, 2.8rem);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .tagline { font-size: clamp(1rem, 1.5vw, 1.5rem); color: var(--text-dim); margin-bottom: 2rem; font-weight: 400; line-height: 1.4; }
+
+        ul { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+        li {
+            font-size: clamp(0.9rem, 1.2vw, 1.2rem);
+            padding: 1.2rem;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .launch-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.2rem 2.5rem;
+            border-radius: 100px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 20px 40px rgba(0, 98, 255, 0.3);
+            transition: all 0.4s;
+            margin-top: 1rem;
+            width: fit-content;
+        }
+
+        .control-deck {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 0.8rem 2rem;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            z-index: 2000;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        .control-deck.hidden {
+            opacity: 0;
+            transform: translateX(-50%) translateY(30px);
+            pointer-events: none;
+        }
+
+        .btn { background: none; border: none; cursor: pointer; color: var(--text-dim); }
+        .btn:hover { color: var(--primary); transform: scale(1.2); }
+        .btn svg { width: 28px; height: 28px; fill: currentColor; }
+
+        .start-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: white; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; z-index: 9999;
+            transition: opacity 1s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .start-btn {
+            background: var(--primary); color: white; padding: 1.5rem 4rem;
+            border-radius: 100px; font-size: clamp(1.5rem, 2vw, 2rem); font-weight: 800;
+            border: none; cursor: pointer; box-shadow: 0 20px 40px rgba(0, 98, 255, 0.2);
+        }
+
+        .progress-indicator {
+            position: fixed; top: 0; left: 0; height: 6px; 
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            width: 0%; transition: width 0.5s; z-index: 3000;
+        }
+    </style>
+</head>
+<body onclick="handleGlobalClick(event)">
+    <div class="start-overlay" id="overlay">
+        <h1 style="font-size: 5rem;">SECUREVOTE 01</h1>
+        <p style="margin-bottom: 2rem; color: var(--text-dim); font-size: 1.5rem;">Lead Developer: Ranadeep Saha</p>
+        <button class="start-btn" onclick="startSession(event)">ENTER PITCH MODE</button>
+    </div>
+
+    <div class="progress-indicator" id="progress"></div>
+
+    <div class="presentation-container" id="container">
+        <!-- Slide 1 -->
+        <section class="slide active" data-script="Good day. I am Ranadeep Saha. Today, I am honored to present SecureVote 01. A sophisticated breakthrough in democratic infrastructure, designed to bring absolute transparency and high integrity to digital elections.">
+            <div class="slide-content">
+                <div class="text-side">
+                    <p style="text-transform: uppercase; letter-spacing: 5px; color: var(--primary); font-weight: 800; margin-bottom: 1rem;">Official Solution Challenge</p>
+                    <h1>SecureVote 01</h1>
+                    <div class="author-tag">Ranadeep Saha</div>
+                    <p class="tagline">A New Standard for High-Integrity Digital Democracy.</p>
+                </div>
+                <div class="image-side">
+                    <img src="media/hero.png" alt="Digital Democracy">
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 2 -->
+        <section class="slide" data-script="The journey begins with verified identity. Our onboarding process is seamlessly integrated with Google Authentication, ensuring that every participant is a legitimate, authorized voter from the very first click.">
+            <div class="slide-content">
+                <div class="text-side">
+                    <h2>Smart Onboarding</h2>
+                    <p class="tagline">Identity verification is mandatory and automated.</p>
+                    <ul>
+                        <li><strong>Google OAuth 2.0</strong>: Industrial-grade authentication.</li>
+                        <li><strong>Instant Access</strong>: Zero-friction entry for authorized users.</li>
+                    </ul>
+                </div>
+                <div class="image-side" style="padding: 1rem;">
+                    <img src="media/auth.png" style="object-fit: contain;" alt="Authentication Screen">
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3 -->
+        <section class="slide" data-script="Security is our obsession. We use industrial-grade protection including UID locking, where every election is hard-linked to the owner's identity. Furthermore, our infrastructure allows for real-time protocol code updates via the cloud.">
+            <div class="slide-content">
+                <div class="text-side">
+                    <h2>Admin Security</h2>
+                    <p class="tagline">Industrial-grade infrastructure protection.</p>
+                    <ul>
+                        <li><strong>UID Locking</strong>: Data tied physically to your Google ID.</li>
+                        <li><strong>Cloud Protocol</strong>: Synchronized security across all devices.</li>
+                    </ul>
+                </div>
+                <div class="image-side" style="padding: 1rem;">
+                    <img src="media/security.png" style="object-fit: contain;" alt="Security Protocol">
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4 -->
+        <section class="slide" data-script="The Organizer Portal offers total management at the speed of thought. With a high-performance dashboard, managing official participants, capturing GPS coordinates, and generating ballots is completely automated.">
+            <div class="slide-content">
+                <div class="text-side">
+                    <h2>Organizer Portal</h2>
+                    <p class="tagline">Total management at the speed of thought.</p>
+                </div>
+                <div class="image-side" style="padding: 1rem;">
+                    <img src="media/organizer.png" style="object-fit: contain;" alt="Organizer Dashboard">
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 5 -->
+        <section class="slide" data-script="The Voter Booth is designed for zero-latency verification. Voters can scan their tickets or enter their IDs manually. The system ensures that every ballot is cast securely, privately, and with absolute finality.">
+            <div class="slide-content">
+                <div class="text-side">
+                    <h2>Voter Experience</h2>
+                    <p class="tagline">Zero-configuration, maximum security.</p>
+                </div>
+                <div class="image-side" style="padding: 1rem;">
+                    <img src="media/voter.png" style="object-fit: contain;" alt="Voter Experience">
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 6 -->
+        <section class="slide" data-script="Our architecture ensures physical isolation between administrators and voters. While the organizer manages the database, the voters interact with a separate, high-integrity interface, all synchronized by Google Cloud.">
+            <div class="slide-content">
+                <div class="text-side">
+                    <h2>Cloud Integrity</h2>
+                    <p class="tagline">Synchronized by Google Cloud Platform.</p>
+                </div>
+                <div class="image-side">
+                    <img src="media/shield.png" alt="Cloud Infrastructure">
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 7 -->
+        <section class="slide" data-script="SecureVote holds a competitive edge as a project ranked in the top 5 percent for code integrity globally. It is built for massive scalability and includes a master recovery protocol to ensure zero downtime for mission-critical events.">
+            <div class="slide-content">
+                <div class="text-side">
+                    <h2>The Advantage</h2>
+                    <p class="tagline">Ready for the real world, today.</p>
+                </div>
+                <div class="image-side">
+                    <img src="media/advantage.png" alt="Competitive Edge">
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 8 -->
+        <section class="slide" data-script="In conclusion, SecureVote is democracy, evolved. It is built to power the next generation of voting and collective decision making. I invite you to experience the future for yourself by launching the live system right now. Thank you.">
+            <div class="slide-content" style="text-align: center;">
+                <div class="text-side" style="align-items: center;">
+                    <h2>Democracy, Evolved.</h2>
+                    <p class="tagline">Experience the future of voting right now.</p>
+                    <a href="https://unknown404-practice.github.io/SecureVote01/" target="_blank" class="launch-btn" onclick="event.stopPropagation()">LAUNCH SECUREVOTE</a>
+                </div>
+                <div class="image-side">
+                    <img src="media/users.png" alt="Conclusion">
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="control-deck">
+        <button class="btn" onclick="event.stopPropagation(); prevSlide()"><svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
+        <button class="btn" id="playPauseBtn" onclick="event.stopPropagation(); togglePlay()"><svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+        <button class="btn" onclick="event.stopPropagation(); nextSlide()"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
+        <div style="border-left: 1px solid rgba(0,0,0,0.1); padding-left: 1rem; display: flex; align-items: center; gap: 1rem;" onclick="event.stopPropagation()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+            <input type="range" min="0" max="1" step="0.1" value="1" style="width: 80px;" oninput="setVolume(this.value)">
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const totalSlides = 8;
+        const container = document.getElementById('container');
+        const progress = document.getElementById('progress');
+        const slides = document.querySelectorAll('.slide');
+        
+        let synth = window.speechSynthesis;
+        let audioCtx = null;
+        let isPaused = true;
+        let volume = 1;
+
+        let hideTimer;
+        const controlDeck = document.querySelector('.control-deck');
+
+        function showControls() {
+            controlDeck.classList.remove('hidden');
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(hideControls, 3000);
+        }
+
+        function hideControls() {
+            if (synth.speaking && !isPaused) {
+                controlDeck.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('mousemove', showControls);
+        document.addEventListener('keydown', showControls);
+
+        function handleGlobalClick(e) {
+            if (document.getElementById('overlay').style.display === 'none') {
+                togglePlay();
+            }
+        }
+
+        function startSession(e) {
+            e.stopPropagation();
+            document.getElementById('overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('overlay').style.display = 'none';
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                isPaused = false;
+                updateSlide();
+                showControls();
+            }, 1000);
+        }
+
+        function playTick() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function speakSlide() {
+            synth.cancel();
+            const text = slides[currentSlide].getAttribute('data-script');
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.05;
+            utterance.pitch = 1.15;
+            utterance.volume = volume;
+            const voices = synth.getVoices();
+            utterance.voice = voices.find(v => v.lang === 'en-IN' && (v.name.includes('Male') || v.name.includes('Google India'))) || 
+                              voices.find(v => v.lang.startsWith('en') && v.name.includes('Male')) || 
+                              voices[0];
+            utterance.onend = () => { if(!isPaused) setTimeout(nextSlide, 1500); };
+            synth.speak(utterance);
+            updatePlayIcon(true);
+        }
+
+        function togglePlay() {
+            if (synth.speaking) {
+                if (synth.paused) { 
+                    synth.resume(); 
+                    isPaused = false; 
+                    updatePlayIcon(true); 
+                } else { 
+                    synth.pause(); 
+                    isPaused = true; 
+                    updatePlayIcon(false); 
+                }
+            } else { 
+                isPaused = false;
+                speakSlide(); 
+            }
+            showControls();
+        }
+
+        function updatePlayIcon(playing) {
+            document.getElementById('playIcon').innerHTML = playing ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+        }
+
+        function setVolume(v) { volume = v; }
+
+        function updateSlide() {
+            slides.forEach((s, i) => {
+                s.classList.remove('active', 'prev');
+                if (i === currentSlide) s.classList.add('active');
+                else if (i < currentSlide) s.classList.add('prev');
+            });
+            progress.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+            playTick();
+            speakSlide();
+        }
+
+        function nextSlide() { if (currentSlide < totalSlides - 1) { currentSlide++; updateSlide(); } }
+        function prevSlide() { if (currentSlide > 0) { currentSlide--; updateSlide(); } }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+            if (e.key === ' ') togglePlay();
+        });
+    </script>
+</body>
+</html>

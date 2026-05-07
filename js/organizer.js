@@ -71,14 +71,16 @@ const Organizer = {
       });
     }
 
-    // Generators
+    // Generators (Now with Security Handshake)
     safeBind('btn-generate-tickets', 'click', async () => {
+      if (!PortalGuard.requireOrganizer()) return; // Security Prompt
       const numInput = document.getElementById('num-voters');
       const num = numInput ? parseInt(numInput.value) : 12;
       await this.generateTicketsPDF(num);
     });
 
     safeBind('btn-generate-zip', 'click', async () => {
+      if (!PortalGuard.requireOrganizer()) return; // Security Prompt
       await this.generateTicketsZIP();
     });
 
@@ -272,6 +274,15 @@ const Organizer = {
 
         const votes = data.votes || {};
         const teams = data.teams || [];
+
+        // HARD SYNC BRIDGE: Inject Cloud data into Local Storage for UI consistency
+        if (teams.length > 0 && DB.getTeams().length === 0) {
+          console.log("CLOUD_SYNC: Syncing remote roster to local storage...");
+          localStorage.setItem(DB.KEYS.TEAMS, JSON.stringify(teams));
+          localStorage.setItem(DB.KEYS.VOTES, JSON.stringify(votes));
+          this.renderTeams(); // Re-render the middle column immediately
+        }
+
         const area = document.getElementById('live-counting-area');
         if (!area) return;
 
