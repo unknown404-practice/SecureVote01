@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Voter Booth Logic â€” Bulletproof V3
  * SCAN   â†’ Html5Qrcode (camera)
  * UPLOAD â†’ jsQR via Canvas (completely independent, no camera needed)
@@ -395,7 +395,23 @@ const Voter = {
     if (window.lucide) lucide.createIcons();
   },
 
-  // Go back to dashboard â€” forcefully hide booth, show dashboard hub
+  handleBackNav() {
+    const dashOverview = document.getElementById('voter-dashboard-overview');
+    const boothLayout  = document.querySelector('.booth-layout');
+    const sidebar      = document.getElementById('voter-sidebar');
+
+    if (dashOverview && dashOverview.style.display === 'block') {
+      this.exitBoothGuard();
+    } else if (boothLayout && (boothLayout.style.display === 'grid' || boothLayout.style.display === 'block')) {
+      this.switchTab('dashboard');
+    } else if (sidebar && sidebar.classList.contains('active')) {
+      this.switchTab('booth');
+    } else {
+      this.switchTab('dashboard');
+    }
+  },
+
+  // Go back to dashboard
   showDashboard() {
     const boothLayout   = document.querySelector('.booth-layout');
     const dashOverview  = document.getElementById('voter-dashboard-overview');
@@ -444,10 +460,10 @@ const Voter = {
         <h2 style="font-size:1.4rem;font-weight:900;color:white;margin-bottom:0.75rem;line-height:1.3;">Please Don't Leave Without Voting!</h2>
         <p style="color:#cbd5e1;font-size:0.9rem;line-height:1.6;margin-bottom:1.75rem;">
           Your vote matters. You have not cast your ballot yet.<br>
-          <strong style="color:#f59e0b;">Every vote counts</strong> â€” the election outcome depends on your participation.
+          <strong style="color:#f59e0b;">Every vote counts</strong> — the election outcome depends on your participation.
         </p>
         <button id="exit-guard-stay" style="width:100%;padding:1rem;border:none;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-weight:900;font-size:1rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:0.75rem;">
-          âœ“ Stay &amp; Cast My Vote
+          ✓ Stay & Cast My Vote
         </button>
         <button id="exit-guard-leave" style="width:100%;padding:0.75rem;border:1px solid #475569;border-radius:12px;background:transparent;color:#64748b;font-weight:700;font-size:0.8rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
           Exit Without Voting
@@ -523,7 +539,7 @@ const Voter = {
     let pollBadge, pollColor;
     if (now < startTime) { pollBadge = 'NOT STARTED'; pollColor = 'var(--accent)'; }
     else if (now > endTime) { pollBadge = 'CLOSED'; pollColor = 'var(--error)'; }
-    else { pollBadge = 'ðŸŸ¢ LIVE'; pollColor = 'var(--success)'; }
+    else { pollBadge = '🟢 LIVE'; pollColor = 'var(--success)'; }
 
     const row = (icon, label, value) => `
       <div class="glass-panel" style="padding:1rem !important; display:flex; gap:0.75rem; align-items:center;">
@@ -554,7 +570,7 @@ const Voter = {
       </div>
 
       ${row('info', 'ELECTION PURPOSE', el.reason || 'Official Ballot Process')}
-      ${row('clock', 'POLL SCHEDULE', `${el.start} â€“ ${el.end} (Local Time)`)}
+      ${row('clock', 'POLL SCHEDULE', `${el.start} – ${el.end} (Local Time)`)}
       ${row('calendar', 'SCHEDULED DATE', el.date)}
       ${row('map-pin', 'VERIFIED LOCATION', `${el.location.address}, ${el.location.city}`)}
       
@@ -602,39 +618,41 @@ const Voter = {
         border: 1px solid rgba(255,255,255,0.08);
         border-left: 4px solid ${color};
         border-radius: 16px;
-        padding: 1.5rem;
+        padding: 1.25rem;
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 1.5rem;
+        gap: 1.25rem;
         transition: all 0.3s ease;
         margin-bottom: 1rem;
       `;
       item.innerHTML = `
-        <div style="width:64px; height:64px; border-radius:50%; overflow:hidden; background:white; border:3px solid ${color}; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
-          <img src="${t.logo}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=font-size:1.5rem;font-weight:900;color:${color};>${t.name[0]}</span>'">
+        <div style="width:56px; height:56px; border-radius:50%; overflow:hidden; background:white; border:3px solid ${color}; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+          <img src="${t.logo}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=font-size:1.2rem;font-weight:900;color:${color};>${t.name[0]}</span>'">
         </div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-size:1.2rem; font-weight:900; color:white; margin-bottom:0.25rem; letter-spacing:0.5px;">${t.name}</div>
-          <div style="font-size:0.75rem; font-weight:800; color:${color}; letter-spacing:2px; text-transform:uppercase;">BALLOT ID: #${t.numeric}</div>
+        <div style="flex:1; min-width:180px;">
+          <div style="font-size:1.1rem; font-weight:900; color:white; margin-bottom:0.2rem; letter-spacing:0.5px;">${t.name}</div>
+          <div style="font-size:0.7rem; font-weight:800; color:${color}; letter-spacing:1.5px; text-transform:uppercase;">BALLOT ID: #${t.numeric}</div>
         </div>
         <button class="ballot-btn" data-numeric="${t.numeric}" style="
           background: linear-gradient(135deg, ${color}22, ${color}44);
           border: 2px solid ${color};
           color: ${color};
           font-weight: 900;
-          font-size: 0.9rem;
-          letter-spacing: 2px;
+          font-size: 0.8rem;
+          letter-spacing: 1.5px;
           text-transform: uppercase;
-          padding: 0.85rem 1.75rem;
-          border-radius: 12px;
+          padding: 0.75rem 1.5rem;
+          border-radius: 10px;
           cursor: pointer;
           transition: all 0.2s ease;
           white-space: nowrap;
           flex-shrink: 0;
+          margin-left: auto;
         "
         onmouseover="this.style.background='${color}'; this.style.color='#0f172a';"
         onmouseout="this.style.background='linear-gradient(135deg, ${color}22, ${color}44)'; this.style.color='${color}';"
-        >âœ“ VOTE</button>
+        >✓ VOTE</button>
       `;
       container.appendChild(item);
     });
