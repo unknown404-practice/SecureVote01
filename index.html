@@ -528,11 +528,9 @@
           </div>
           <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; padding:1rem; gap:0.75rem;">
             <div id="ai-chat" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.75rem; padding:0.25rem;"></div>
-            <form id="form-ai" style="display:flex; gap:0.5rem; flex-shrink:0;" onsubmit="return false;">
-              <input type="text" id="ai-input" class="form-input" placeholder="Ask System Assistant..." style="flex:1; min-width:0;"
-                onkeydown="if(event.key==='Enter'){event.preventDefault(); var q=(this.value||'').trim(); if(q){if(typeof Assistant!=='undefined'){if(!Assistant.initialized)Assistant.ensureInit(); Assistant.handleQuery(q);}}}">
-              <button type="button" class="btn btn-primary" style="padding:0.85rem 1rem; flex-shrink:0;"
-                onclick="var inp=document.getElementById('ai-input'); var q=(inp?inp.value:'').trim(); if(q&&typeof Assistant!=='undefined'){if(!Assistant.initialized)Assistant.ensureInit(); Assistant.handleQuery(q);}">
+            <form id="form-ai" style="display:flex; gap:0.5rem; flex-shrink:0;">
+              <input type="text" id="ai-input" class="form-input" placeholder="Ask System Assistant..." style="flex:1; min-width:0;" autocomplete="off">
+              <button type="submit" class="btn btn-primary" style="padding:0.85rem 1rem; flex-shrink:0;">
                 <i data-lucide="send"></i>
               </button>
             </form>

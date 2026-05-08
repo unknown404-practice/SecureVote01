@@ -17,18 +17,12 @@ const Assistant = {
     this.inputField = document.getElementById('ai-input');
 
     if (this.form) {
-      this.form.addEventListener('submit', (e) => {
-        e.preventDefault();
+      this.form.onsubmit = (e) => {
+        if (e) e.preventDefault();
         const q = (this.inputField.value || '').trim();
         if (q) this.handleQuery(q);
-      });
-    }
-
-    // Allow Enter key
-    if (this.inputField) {
-      this.inputField.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); this.form.dispatchEvent(new Event('submit')); }
-      });
+        return false;
+      };
     }
 
     this.wipeChat();
@@ -36,12 +30,10 @@ const Assistant = {
   },
 
   wipeChat() {
-    this.initialized = false; // allow re-init on next open
     if (this.chatContainer) {
       this.chatContainer.innerHTML = '';
       this.addMessage('ai', `👋 Hello! I'm your <strong>SecureVote Personal Assistant</strong>.<br><br>I have full context of this election. You can ask me about <strong>candidates, voting hours, location, rules, security</strong>, or anything else about this protocol.<br><br>Use the quick buttons below or type your question!`);
     }
-    this.initialized = true;
   },
 
   quickAsk(question) {
