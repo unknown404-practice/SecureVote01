@@ -595,79 +595,171 @@ const Voter = {
     });
   },
 
-  async castVote(teamNumeric) {
-    if (!confirm(`Cast vote for Team #${teamNumeric}? This is permanent.`)) return;
+  // Show smooth inline vote confirmation modal — no browser dialogs
+  showVoteModal(teamNumeric) {
+    const teams = DB.getTeams();
+    const team = teams.find(t => String(t.numeric) === String(teamNumeric));
+    if (!team) return;
 
-    const result = await DB.castVote(this.activeVoterId, teamNumeric, this.activeElectionId);
+    const colors = ['#38bdf8','#fbbf24','#f87171','#4ade80','#818cf8','#f472b6','#fb923c','#a78bfa'];
+    const idx = teams.indexOf(team);
+    const color = colors[idx % colors.length];
 
-    if (result.success) {
-      // Lock all ballot buttons
-      document.querySelectorAll('.ballot-btn').forEach(btn => {
+    // Remove any existing modal
+    const existing = document.getElementById('vote-confirm-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'vote-confirm-modal';
+    modal.style.cssText = `
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.75);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      animation: fadeIn 0.2s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <style>
+        @keyframes fadeIn { from { opacity:0; transform:scale(0.92); } to { opacity:1; transform:scale(1); } }
+        @keyframes slideUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        #vote-confirm-box { animation: slideUp 0.25s ease-out; }
+      </style>
+      <div id="vote-confirm-box" style="
+        background: #0f172a;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-top: 4px solid ${color};
+        border-radius: 24px;
+        padding: 2.5rem;
+        max-width: 480px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+      ">
+        <div style="font-size:0.7rem; color:var(--text-secondary); font-weight:800; letter-spacing:3px; text-transform:uppercase; margin-bottom:1.5rem;">
+          🔐 SECURE BALLOT CONFIRMATION
+        </div>
+
+        <div style="width:80px; height:80px; border-radius:50%; overflow:hidden; background:white; border:4px solid ${color}; margin: 0 auto 1.25rem; display:flex; align-items:center; justify-content:center;">
+          <img src="${team.logo}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=font-size:2rem;font-weight:900;color:${color};>${team.name[0]}</span>'">
+        </div>
+
+        <h2 style="font-size:1.8rem; font-weight:900; color:white; margin-bottom:0.4rem;">${team.name}</h2>
+        <div style="font-size:0.8rem; font-weight:800; color:${color}; letter-spacing:2px; text-transform:uppercase; margin-bottom:1.5rem;">BALLOT ID: #${team.numeric}</div>
+
+        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.6; margin-bottom:2rem; background:rgba(255,255,255,0.03); border-radius:12px; padding:1rem;">
+          ⚠️ This action is <strong style="color:white;">irreversible</strong>. Once submitted, your vote is cryptographically sealed and cannot be changed.
+        </p>
+
+        <div style="display:flex; gap:1rem; justify-content:center;">
+          <button id="btn-vote-cancel" style="
+            flex:1; padding:1rem; border-radius:12px;
+            background:transparent; border:1px solid rgba(255,255,255,0.15);
+            color:var(--text-secondary); font-weight:800; font-size:0.9rem;
+            letter-spacing:1px; cursor:pointer; text-transform:uppercase;
+            transition: all 0.2s;
+          ">✕ CANCEL</button>
+          <button id="btn-vote-confirm" style="
+            flex:2; padding:1rem; border-radius:12px;
+            background:linear-gradient(135deg, ${color}, ${color}cc);
+            border:none; color:#0f172a;
+            font-weight:900; font-size:1rem; letter-spacing:2px;
+            cursor:pointer; text-transform:uppercase;
+            transition: all 0.2s; box-shadow: 0 8px 24px ${color}44;
+          ">✓ CONFIRM VOTE</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Cancel
+    document.getElementById('btn-vote-cancel').onclick = () => modal.remove();
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+    // Confirm → cast vote
+    document.getElementById('btn-vote-confirm').onclick = async () => {
+      const confirmBtn = document.getElementById('btn-vote-confirm');
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '⏳ SUBMITTING...';
+
+      const result = await DB.castVote(this.activeVoterId, teamNumeric, this.activeElectionId);
+      modal.remove();
+
+      if (result.success) {
+        this.showVoteSuccess(teamNumeric);
+      } else {
+        this.showVoteError(result.reason);
+      }
+    };
+  },
+
+  showVoteSuccess(teamNumeric) {
+    // Lock all ballot buttons
+    const container = document.getElementById('ballot-teams');
+    if (container) {
+      container.querySelectorAll('.ballot-btn').forEach(btn => {
         btn.disabled = true;
-        btn.innerText = "VOTE RECORDED";
-        btn.style.opacity = '0.5';
+        btn.textContent = '✓ VOTED';
+        btn.style.opacity = '0.4';
+        btn.style.cursor = 'not-allowed';
       });
-      const teamEl = document.getElementById(`ballot-team-${teamNumeric}`);
-      if (teamEl) teamEl.classList.add('voted');
-
-      // Show success message with exit button
-      const statusEl = document.getElementById('ballot-status');
-      if (statusEl) {
-        statusEl.style.display = 'block';
-        statusEl.style.cssText = 'display:block; background:rgba(34,197,94,0.1); border:2px solid var(--success); border-radius:16px; padding:2rem; text-align:center; margin-bottom:1.5rem;';
-        statusEl.innerHTML = `
-          <div style="display:flex; flex-direction:column; align-items:center; gap:1.5rem;">
-            <div style="width:60px; height:60px; border-radius:50%; background:rgba(34,197,94,0.1); display:flex; align-items:center; justify-content:center;">
-              <i data-lucide="shield-check" style="width:32px; height:32px; color:var(--success);"></i>
-            </div>
-            <div>
-              <h3 style="color:var(--success); font-weight:900; font-size:1.5rem; margin-bottom:0.5rem; letter-spacing:1px;">VOTE SECURELY RECORDED</h3>
-              <p style="color:var(--text-secondary); font-size:0.95rem; line-height:1.6; max-width:400px;">Your ballot has been mathematically anonymized and submitted. To protect your privacy, this session will now be wiped.</p>
-            </div>
-            <button id="btn-final-exit" class="btn btn-primary" style="padding:1rem 2.5rem; font-weight:900; font-size:1rem; letter-spacing:2px; text-transform:uppercase; display:flex; align-items:center; gap:0.75rem; border-radius:12px;">
-              <i data-lucide="lock"></i> EXIT SECURE TERMINAL
-            </button>
-          </div>
-        `;
-        if (window.lucide) lucide.createIcons();
-
-        const exitBtn = document.getElementById('btn-final-exit');
-        if (exitBtn) {
-          exitBtn.onclick = () => {
-            if (typeof Assistant !== 'undefined') Assistant.wipeChat();
-            PortalGuard.exitVoter();
-          };
-        }
-      }
-
-      alert("✅ CONFIRMED: Your vote has been officially recorded. This session is now locked.");
-
-    } else {
-      const statusEl = document.getElementById('ballot-status');
-      if (statusEl) {
-        statusEl.style.cssText = 'display:block; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:16px; padding:2rem; text-align:center; margin-bottom:2rem;';
-        statusEl.innerHTML = `
-          <div style="display:flex; flex-direction:column; align-items:center; gap:1.25rem;">
-            <i data-lucide="alert-triangle" style="width:40px; height:40px; color:var(--error);"></i>
-            <div>
-              <div style="color:var(--error); font-weight:900; font-size:1.1rem; text-transform:uppercase; letter-spacing:2px; margin-bottom:0.5rem;">PROTOCOL VIOLATION</div>
-              <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.5; max-width:350px;">${result.reason}</p>
-            </div>
-            <button id="btn-error-exit" class="btn btn-secondary" style="margin-top:0.5rem; padding:0.75rem 1.5rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:0.5rem;">
-              <i data-lucide="log-out"></i> TERMINATE SESSION
-            </button>
-          </div>
-        `;
-        if (window.lucide) lucide.createIcons();
-        
-        const errExit = document.getElementById('btn-error-exit');
-        if (errExit) {
-          errExit.onclick = () => {
-            if (typeof Assistant !== 'undefined') Assistant.wipeChat();
-            PortalGuard.exitVoter();
-          };
-        }
-      }
     }
+
+    const statusEl = document.getElementById('ballot-status');
+    if (!statusEl) return;
+    statusEl.style.cssText = `
+      display:block; background:rgba(34,197,94,0.08);
+      border:2px solid var(--success); border-radius:20px;
+      padding:2.5rem; text-align:center; margin-bottom:1.5rem;
+      animation: slideUp 0.4s ease-out;
+    `;
+    statusEl.innerHTML = `
+      <style>@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }</style>
+      <div style="width:80px; height:80px; border-radius:50%; background:rgba(34,197,94,0.15); border:3px solid var(--success); display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem;">
+        <span style="font-size:2.5rem;">✅</span>
+      </div>
+      <h3 style="color:var(--success); font-weight:900; font-size:1.6rem; margin-bottom:0.75rem; letter-spacing:1px;">VOTE RECORDED</h3>
+      <p style="color:var(--text-secondary); font-size:0.95rem; line-height:1.7; max-width:380px; margin:0 auto 2rem;">
+        Your ballot has been cryptographically sealed and anonymized. Your identity is protected. This session is now locked.
+      </p>
+      <button id="btn-final-exit" style="
+        background:var(--success); color:#0f172a; border:none;
+        padding:1rem 2.5rem; border-radius:12px; font-weight:900;
+        font-size:1rem; letter-spacing:2px; text-transform:uppercase;
+        cursor:pointer; display:inline-flex; align-items:center; gap:0.75rem;
+      ">🔒 EXIT SECURE TERMINAL</button>
+    `;
+    if (window.lucide) lucide.createIcons();
+    document.getElementById('btn-final-exit').onclick = () => {
+      if (typeof Assistant !== 'undefined') Assistant.wipeChat();
+      PortalGuard.exitVoter();
+    };
+    statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  },
+
+  showVoteError(reason) {
+    const statusEl = document.getElementById('ballot-status');
+    if (!statusEl) return;
+    statusEl.style.cssText = `
+      display:block; background:rgba(239,68,68,0.08);
+      border:1px solid rgba(239,68,68,0.3); border-radius:16px;
+      padding:2rem; text-align:center; margin-bottom:2rem;
+    `;
+    statusEl.innerHTML = `
+      <div style="font-size:2.5rem; margin-bottom:1rem;">⛔</div>
+      <div style="color:var(--error); font-weight:900; font-size:1.1rem; text-transform:uppercase; letter-spacing:2px; margin-bottom:0.75rem;">PROTOCOL VIOLATION</div>
+      <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.5; max-width:350px; margin:0 auto 1.5rem;">${reason}</p>
+      <button id="btn-error-exit" style="
+        background:transparent; border:1px solid var(--error); color:var(--error);
+        padding:0.75rem 1.75rem; border-radius:10px; font-weight:800;
+        font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer;
+      ">↩ GO BACK</button>
+    `;
+    document.getElementById('btn-error-exit').onclick = () => { statusEl.style.display = 'none'; };
+  },
+
+  async castVote(teamNumeric) {
+    this.showVoteModal(teamNumeric);
   }
 };
