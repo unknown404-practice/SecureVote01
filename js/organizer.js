@@ -102,7 +102,7 @@ const Organizer = {
     safeBind('btn-publish-results', 'click', async () => {
       if (!PortalGuard.requireOrganizer()) return;
 
-      const storedCode = localStorage.getItem('sv_org_code') || 'ORG-2026';
+      const storedCode = localStorage.getItem('sv_v2_org_code') || 'ORG-2026';
       const entered = prompt(
         '🔐 SECURE RESULTS CERTIFICATION\n\n' +
         'Enter your Organization Secret Code to finalize and publish the official election results.\n\n' +
