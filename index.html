@@ -1022,9 +1022,20 @@
       }
 
       try {
-        // First-time Cloud Initialization
+        // First-time Cloud Initialization & Secret Code Generation
         if (!DB.getElectionId()) {
           console.log("INITIALIZING_CLOUD_SILO: Creating new election record...");
+          
+          // Generate unique SECRET-XXX code for this specific protocol
+          const randomNum = Math.floor(100 + Math.random() * 900);
+          const generatedSecret = `SECRET-${randomNum}`;
+          
+          if (typeof updateOrgCode === 'function') {
+            await updateOrgCode(generatedSecret);
+            console.log(`SECURE_CODE_GENERATED: [${generatedSecret}]`);
+            alert(`🔐 PROTOCOL SECURITY INITIALIZED\n\nYour MASTER PUBLISHING CODE is: [${generatedSecret}]\n\nPlease SAVE THIS CODE. You will need it exactly as shown to finalize and publish results.`);
+          }
+          
           await DB.publishToCloud();
         }
 

@@ -6,7 +6,7 @@
 
 // ── ORGANIZER CODE SECURITY ──────────────────────────────────────────────────
 const ORGANIZER_CODE_KEY = 'sv_v2_org_code';
-const DEFAULT_ORGANIZER_CODE = 'ORG-2026'; // LOCKED OFFICIAL CODE
+const DEFAULT_ORGANIZER_CODE = 'LOCKED-SETUP'; // FORCES INITIAL GENERATION
 
 function getOrgCode() {
   return localStorage.getItem(ORGANIZER_CODE_KEY) || DEFAULT_ORGANIZER_CODE;
