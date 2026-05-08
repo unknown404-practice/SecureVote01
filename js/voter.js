@@ -374,12 +374,14 @@ const Voter = {
       const dashOverview = document.getElementById('voter-dashboard-overview');
 
       if (tab === 'booth') {
-        if (boothLayout) boothLayout.style.display = 'grid';
+        // Forcefully hide dashboard, show booth
         if (dashOverview) dashOverview.style.display = 'none';
+        if (boothLayout)  boothLayout.style.display  = 'grid';
         // Always re-render ballot so candidates show up
         this.renderBallot(null);
       } else {
-        if (boothLayout) boothLayout.style.display = 'none';
+        // Forcefully hide booth, show dashboard
+        if (boothLayout)  boothLayout.style.display  = 'none';
         if (dashOverview) dashOverview.style.display = 'block';
       }
     } else {
@@ -393,22 +395,27 @@ const Voter = {
     if (window.lucide) lucide.createIcons();
   },
 
-  // Toggle to DASHBOARD overview view (hide ballot, show overview)
+  // Go back to dashboard — forcefully hide booth, show dashboard hub
   showDashboard() {
-    const ballot = document.getElementById('ballot-teams');
-    const dashOverview = document.getElementById('voter-dashboard-overview');
-    const main = document.getElementById('voter-main');
-    const ballotTitle = main ? main.querySelector('h2') : null;
-    const sidebar = document.getElementById('voter-sidebar');
-    const ballotStatus = document.getElementById('ballot-status');
-    if (ballot) ballot.style.display = 'none';
+    const boothLayout   = document.querySelector('.booth-layout');
+    const dashOverview  = document.getElementById('voter-dashboard-overview');
+    const main          = document.getElementById('voter-main');
+    const sidebar       = document.getElementById('voter-sidebar');
+    const ballotStatus  = document.getElementById('ballot-status');
+
+    // Hide the ENTIRE booth layout (left ballot col + right info col)
+    if (boothLayout)  boothLayout.style.display  = 'none';
+    // Hide ballot status banner
     if (ballotStatus) ballotStatus.style.display = 'none';
+    // Show dashboard hub
     if (dashOverview) dashOverview.style.display = 'block';
-    if (ballotTitle) ballotTitle.style.display = 'none';
-    if (main) main.style.display = 'block';
+    // Make sure voter-main is visible and sidebar is gone
+    if (main)    main.style.display = 'block';
     if (sidebar) sidebar.classList.remove('active');
-    // Clean up dashboard active states
+    // Reset hub-card active states
     document.querySelectorAll('.hub-card').forEach(el => el.classList.remove('active'));
+    const overviewCard = document.querySelector('.hub-card[data-tab="dashboard"]');
+    if (overviewCard) overviewCard.classList.add('active');
     if (window.lucide) lucide.createIcons();
   },
 
