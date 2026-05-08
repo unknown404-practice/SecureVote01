@@ -714,100 +714,104 @@ const Voter = {
     modal.id = 'vote-success-modal';
     modal.style.cssText = `
       position: fixed; inset: 0; z-index: 9999;
-      background: rgba(0, 0, 0, 0.85);
       display: flex; align-items: center; justify-content: center;
-      padding: 1.5rem;
-      animation: svFadeIn 0.3s ease-out;
+      backdrop-filter: blur(18px) saturate(0.6) brightness(0.45);
+      -webkit-backdrop-filter: blur(18px) saturate(0.6) brightness(0.45);
+      animation: svBgIn 0.35s ease-out forwards;
     `;
 
     modal.innerHTML = `
       <style>
-        @keyframes svFadeIn  { from { opacity:0 } to { opacity:1 } }
-        @keyframes svSlideUp { from { opacity:0; transform:translateY(40px) scale(0.95) }
-                               to   { opacity:1; transform:translateY(0)   scale(1)    } }
-        @keyframes svPulse   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
-        #sv-success-box { animation: svSlideUp 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
-        #sv-check-ring  { animation: svPulse 1.8s ease-in-out infinite; }
+        @keyframes svBgIn   { from{opacity:0} to{opacity:1} }
+        @keyframes svRiseUp {
+          from { opacity:0; transform: translateY(60px) scale(0.93); }
+          to   { opacity:1; transform: translateY(0)    scale(1);    }
+        }
+        @keyframes svPulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+        #sv-banner { animation: svRiseUp 0.45s cubic-bezier(0.34,1.4,0.64,1) forwards; }
+        #sv-ring   { animation: svPulse 2s ease-in-out infinite; }
       </style>
 
-      <div id="sv-success-box" style="
-        background: linear-gradient(160deg, #0f172a 0%, #0c1a30 100%);
-        border: 1px solid rgba(34,197,94,0.25);
-        border-top: 5px solid #22c55e;
-        border-radius: 28px;
-        padding: 3rem 2.5rem;
-        max-width: 500px;
-        width: 100%;
+      <!-- The 4:3 Banner -->
+      <div id="sv-banner" style="
+        /* 4:3 ratio — width drives height */
+        width: min(72vw, 420px);
+        aspect-ratio: 4 / 3;
+
+        background: linear-gradient(160deg, rgba(15,23,42,0.97) 0%, rgba(10,20,40,0.98) 100%);
+        border: 1px solid rgba(34,197,94,0.3);
+        border-top: 4px solid #22c55e;
+        border-radius: 22px;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 40px rgba(34,197,94,0.1);
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        padding: 1.75rem 2rem;
         text-align: center;
-        box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 60px rgba(34,197,94,0.08);
         position: relative;
         overflow: hidden;
       ">
-        <!-- Decorative glow blob -->
-        <div style="position:absolute; top:-60px; left:50%; transform:translateX(-50%);
-          width:220px; height:220px; border-radius:50%;
-          background:radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 70%);
-          pointer-events:none;"></div>
+        <!-- Glow blob -->
+        <div style="position:absolute;top:-50px;left:50%;transform:translateX(-50%);
+          width:180px;height:180px;border-radius:50%;pointer-events:none;
+          background:radial-gradient(circle,rgba(34,197,94,0.14) 0%,transparent 70%);"></div>
 
-        <!-- Check icon -->
-        <div id="sv-check-ring" style="
-          width: 96px; height: 96px; border-radius: 50%;
-          background: rgba(34,197,94,0.12);
-          border: 3px solid rgba(34,197,94,0.5);
-          display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 1.75rem;
+        <!-- Pulsing check ring -->
+        <div id="sv-ring" style="
+          width:56px; height:56px; border-radius:50%;
+          background:rgba(34,197,94,0.12);
+          border:2px solid rgba(34,197,94,0.55);
+          display:flex; align-items:center; justify-content:center;
+          flex-shrink:0;
         ">
-          <span style="font-size:3rem; line-height:1;">✅</span>
+          <span style="font-size:1.75rem; line-height:1;">✅</span>
         </div>
 
-        <!-- Label -->
-        <div style="font-size:0.65rem; font-weight:900; letter-spacing:4px;
-          text-transform:uppercase; color:rgba(34,197,94,0.7); margin-bottom:0.75rem;">
+        <!-- Badge -->
+        <div style="font-size:0.55rem;font-weight:900;letter-spacing:4px;
+          text-transform:uppercase;color:rgba(34,197,94,0.75);">
           🔐 VOTE CERTIFIED
         </div>
 
         <!-- Heading -->
-        <h2 style="font-size:2rem; font-weight:900; color:#ffffff;
-          line-height:1.2; margin-bottom:0.5rem; letter-spacing:0.5px;">
+        <h2 style="font-size:clamp(1.1rem,3.5vw,1.45rem);font-weight:900;
+          color:#fff;line-height:1.2;margin:0;">
           Thank You for<br>Participating!
         </h2>
 
-        <!-- Subheading -->
-        <p style="font-size:1rem; font-weight:700; color:#22c55e;
-          letter-spacing:1px; margin-bottom:1.5rem;">
-          Your Vote Has Been Officially Recorded.
+        <!-- Sub text -->
+        <p style="font-size:clamp(0.7rem,2vw,0.82rem);font-weight:700;
+          color:#22c55e;letter-spacing:0.5px;margin:0;">
+          Your vote has been officially recorded.
         </p>
-
-        <!-- Info box -->
-        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
-          border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:2rem; text-align:left;">
-          <div style="display:flex; align-items:flex-start; gap:0.75rem; color:var(--text-secondary); font-size:0.875rem; line-height:1.65;">
-            <span style="font-size:1.1rem; margin-top:1px; flex-shrink:0;">🛡️</span>
-            <span>Your ballot has been <strong style="color:white;">cryptographically anonymized</strong> and sealed. No identity data is linked to your vote after submission.</span>
-          </div>
-        </div>
 
         <!-- Exit button -->
         <button id="btn-thank-you-exit" style="
-          width: 100%;
-          padding: 1.1rem;
-          background: linear-gradient(135deg, #22c55e, #16a34a);
-          border: none; border-radius: 14px;
-          color: #0f172a; font-weight: 900;
-          font-size: 1rem; letter-spacing: 2px;
-          text-transform: uppercase; cursor: pointer;
-          box-shadow: 0 8px 32px rgba(34,197,94,0.35);
-          transition: all 0.2s ease;
-          display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+          margin-top:0.4rem;
+          padding:0.7rem 1.6rem;
+          background:linear-gradient(135deg,#22c55e,#16a34a);
+          border:none; border-radius:12px;
+          color:#0f172a; font-weight:900;
+          font-size:clamp(0.72rem,2vw,0.85rem);
+          letter-spacing:2px; text-transform:uppercase;
+          cursor:pointer;
+          box-shadow:0 6px 24px rgba(34,197,94,0.4);
+          transition:transform 0.2s, box-shadow 0.2s;
+          display:flex; align-items:center; gap:0.5rem;
+          flex-shrink:0;
         "
-        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 40px rgba(34,197,94,0.45)';"
-        onmouseout="this.style.transform=''; this.style.boxShadow='0 8px 32px rgba(34,197,94,0.35)';"
+        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 32px rgba(34,197,94,0.55)';"
+        onmouseout="this.style.transform='';this.style.boxShadow='0 6px 24px rgba(34,197,94,0.4)';"
         >
           🔒 Exit Secure Booth
         </button>
 
-        <p style="font-size:0.72rem; color:rgba(255,255,255,0.25); margin-top:1.25rem; letter-spacing:0.5px;">
-          SecureVote · Cryptographic Ballot Protocol · Session Terminated
+        <!-- Footer -->
+        <p style="font-size:0.6rem;color:rgba(255,255,255,0.2);letter-spacing:0.5px;margin:0;">
+          SecureVote · Session Terminated
         </p>
       </div>
     `;
@@ -815,9 +819,12 @@ const Voter = {
     document.body.appendChild(modal);
 
     document.getElementById('btn-thank-you-exit').onclick = () => {
-      modal.remove();
-      if (typeof Assistant !== 'undefined') Assistant.wipeChat();
-      PortalGuard.exitVoter();
+      modal.style.animation = 'svBgIn 0.2s ease-in reverse forwards';
+      setTimeout(() => {
+        modal.remove();
+        if (typeof Assistant !== 'undefined') Assistant.wipeChat();
+        PortalGuard.exitVoter();
+      }, 200);
     };
   },
 
