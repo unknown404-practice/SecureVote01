@@ -419,6 +419,51 @@ const Voter = {
     if (window.lucide) lucide.createIcons();
   },
 
+  // Guard: called when voter tries to leave the booth via top ← arrow
+  exitBoothGuard() {
+    // If voter already voted, let them leave cleanly
+    if (this.hasVoted) {
+      if (typeof App !== 'undefined') App.showSection('role-screen');
+      return;
+    }
+
+    // Remove any existing guard modal
+    const existing = document.getElementById('exit-booth-guard');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'exit-booth-guard';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.5rem;';
+    modal.innerHTML = `
+      <div id="exit-guard-backdrop" style="position:absolute;inset:0;background:rgba(2,6,23,0.88);backdrop-filter:blur(12px);"></div>
+      <div style="position:relative;z-index:1;width:100%;max-width:420px;background:#1e293b;border:2px solid #f59e0b;border-radius:20px;padding:2rem;text-align:center;box-shadow:0 0 60px rgba(245,158,11,0.25);animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(245,158,11,0.12);border:2px solid #f59e0b;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
+          <svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='#f59e0b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>
+        </div>
+        <div style="font-size:0.7rem;color:#f59e0b;font-weight:900;letter-spacing:3px;text-transform:uppercase;margin-bottom:0.75rem;">SECURE BOOTH ALERT</div>
+        <h2 style="font-size:1.4rem;font-weight:900;color:white;margin-bottom:0.75rem;line-height:1.3;">Please Don't Leave Without Voting!</h2>
+        <p style="color:#cbd5e1;font-size:0.9rem;line-height:1.6;margin-bottom:1.75rem;">
+          Your vote matters. You have not cast your ballot yet.<br>
+          <strong style="color:#f59e0b;">Every vote counts</strong> — the election outcome depends on your participation.
+        </p>
+        <button id="exit-guard-stay" style="width:100%;padding:1rem;border:none;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-weight:900;font-size:1rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:0.75rem;">
+          ✓ Stay &amp; Cast My Vote
+        </button>
+        <button id="exit-guard-leave" style="width:100%;padding:0.75rem;border:1px solid #475569;border-radius:12px;background:transparent;color:#64748b;font-weight:700;font-size:0.8rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
+          Exit Without Voting
+        </button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('exit-guard-stay').onclick = () => modal.remove();
+    document.getElementById('exit-guard-backdrop').onclick = () => modal.remove();
+    document.getElementById('exit-guard-leave').onclick = () => {
+      modal.remove();
+      if (typeof App !== 'undefined') App.showSection('role-screen');
+    };
+  },
+
   renderDashboard(el) {
     if (!el) el = DB.getElection();
     if (!el) return;

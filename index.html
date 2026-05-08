@@ -443,7 +443,7 @@
   <section id="voter-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:1rem; overflow:hidden; flex:1;">
-        <button onclick="if(typeof App!=='undefined') App.showSection('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
+        <button onclick="if(typeof Voter!=='undefined') Voter.exitBoothGuard();" class="btn btn-secondary btn-sm" title="Exit Booth" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
         <div class="logo" style="font-weight:800; font-size:clamp(0.9rem,3vw,1.5rem); display:flex; align-items:center; gap:0.5rem; white-space:nowrap;">
           <i data-lucide="vote" class="text-accent" style="flex-shrink:0;"></i> OFFICIAL BALLOT BOOTH
         </div>
@@ -457,7 +457,7 @@
         <!-- Security Window -->
         <div id="tab-security" class="tab-content">
           <div class="window-header">
-            <button class="btn btn-secondary btn-sm btn-back-to-booth"><i data-lucide="arrow-left"></i></button>
+            <button onclick="if(typeof Voter!=='undefined') Voter.switchTab('booth');" class="btn btn-secondary btn-sm" title="Back to Ballot"><i data-lucide="arrow-left"></i></button>
             <h2 style="font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">SYSTEM SECURITY STATUS</h2>
           </div>
           <div class="tab-window-content">
@@ -483,7 +483,7 @@
         <!-- Timeline Window -->
         <div id="tab-details" class="tab-content">
           <div class="window-header">
-            <button class="btn btn-secondary btn-sm btn-back-to-booth"><i data-lucide="arrow-left"></i></button>
+            <button onclick="if(typeof Voter!=='undefined') Voter.switchTab('booth');" class="btn btn-secondary btn-sm" title="Back to Ballot"><i data-lucide="arrow-left"></i></button>
             <h2 style="font-weight:800; text-transform:uppercase; letter-spacing:1px; font-size:clamp(0.9rem,2vw,1.2rem);">ELECTION TIMELINE</h2>
           </div>
           <div class="tab-window-content" style="padding:1.25rem;">
@@ -496,7 +496,7 @@
         <!-- Guidelines Window -->
         <div id="tab-guidelines" class="tab-content">
           <div class="window-header">
-            <button class="btn btn-secondary btn-sm btn-back-to-booth"><i data-lucide="arrow-left"></i></button>
+            <button onclick="if(typeof Voter!=='undefined') Voter.switchTab('booth');" class="btn btn-secondary btn-sm" title="Back to Ballot"><i data-lucide="arrow-left"></i></button>
             <h2 style="font-weight:800; text-transform:uppercase; letter-spacing:1px; font-size:clamp(0.9rem,2vw,1.2rem);">VOTER GUIDELINES</h2>
           </div>
           <div class="tab-window-content" style="padding:1rem; display:flex; flex-direction:column; gap:1rem;">
@@ -521,7 +521,7 @@
         <!-- Assistant Window -->
         <div id="tab-assistant" class="tab-content" style="height:100%; display:flex; flex-direction:column;">
           <div class="window-header">
-            <button class="btn btn-secondary btn-sm btn-back-to-booth"><i data-lucide="arrow-left"></i></button>
+            <button onclick="if(typeof Voter!=='undefined') Voter.switchTab('booth');" class="btn btn-secondary btn-sm" title="Back to Ballot"><i data-lucide="arrow-left"></i></button>
             <h2 style="font-weight:800; text-transform:uppercase; letter-spacing:1px; font-size:clamp(0.9rem,2vw,1.2rem); display:flex; align-items:center; gap:0.5rem;">
               <i data-lucide="bot" style="color:var(--primary); flex-shrink:0;"></i> ASK SYSTEM ASSISTANT
             </h2>
@@ -771,7 +771,7 @@
     </nav>
   </section>
 
-  <!-- RESULTS SCREEN -->
+  <!-- RESULTS SCREEN v2 -->
   <section id="results-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
