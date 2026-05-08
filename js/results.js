@@ -5,6 +5,7 @@
 const Results = {
   activeElectionId: null,
   unsubscribe: null,
+  autoGenDone: false,
 
   async render(providedEId = null) {
     const eId = providedEId || new URLSearchParams(window.location.search).get('electionId') || DB.getElectionId();
@@ -15,6 +16,7 @@ const Results = {
     }
 
     this.activeElectionId = eId;
+    this.autoGenDone = false; // reset so docs auto-generate this session
 
     // Start Real-time Listener if not already active
     if (!this.unsubscribe) {
@@ -99,8 +101,14 @@ const Results = {
     // Chart
     this.renderChart(sortedTeams, votes);
 
-    // Bind Action Buttons (Only once or re-bind if needed)
+    // Bind Action Buttons
     this.bindButtons(el, sortedTeams, votes, totalVotes);
+
+    // Auto-generate all 3 documents the first time results load this session
+    if (!this.autoGenDone && totalVotes > 0 && Object.keys(el).length > 0) {
+      this.autoGenDone = true;
+      setTimeout(() => this.autoGenerateAllDocs(el, sortedTeams, votes, totalVotes), 1200);
+    }
   },
 
   bindButtons(el, teams, votes, totalVotes) {
@@ -121,24 +129,87 @@ const Results = {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (window.myChart) window.myChart.destroy();
-    
+
+    let totalVotes = 0;
+    Object.values(votes).forEach(v => totalVotes += v);
+
+    const winner = teams[0];
+    const winnerVotes = winner ? (votes[winner.numeric] || 0) : 0;
+    const winnerPct = totalVotes > 0 ? Math.round((winnerVotes / totalVotes) * 100) : 0;
+    const winnerName = winner ? winner.name : '';
+
+    // Center-text plugin (shows winner % inside doughnut)
+    const centerTextPlugin = {
+      id: 'centerText',
+      afterDraw(chart) {
+        if (chart.config.type !== 'doughnut') return;
+        const { width, height, ctx: c } = chart;
+        c.save();
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        // Big percentage
+        c.font = `900 ${Math.round(height / 6)}px Inter, sans-serif`;
+        c.fillStyle = '#f8fafc';
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.fillText(`${winnerPct}%`, centerX, centerY - height * 0.05);
+
+        // Small label
+        c.font = `700 ${Math.round(height / 14)}px Inter, sans-serif`;
+        c.fillStyle = '#fbbf24';
+        c.fillText(winnerName.length > 12 ? winnerName.substring(0, 12) + '…' : winnerName, centerX, centerY + height * 0.13);
+
+        c.restore();
+      }
+    };
+
     window.myChart = new Chart(ctx, {
       type: 'doughnut',
+      plugins: [centerTextPlugin],
       data: {
         labels: teams.map(t => t.name),
         datasets: [{
           data: teams.map(t => votes[t.numeric] || 0),
           backgroundColor: ['#38bdf8', '#fbbf24', '#f87171', '#4ade80', '#818cf8', '#f472b6'],
-          borderWidth: 0
+          borderWidth: 0,
+          hoverOffset: 8
         }]
       },
       options: {
         responsive: true,
+        cutout: '65%',
         plugins: {
-          legend: { position: 'bottom', labels: { color: '#94a3b8', font: { family: 'Inter' } } }
+          legend: { position: 'bottom', labels: { color: '#94a3b8', font: { family: 'Inter' }, padding: 16 } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const pct = totalVotes > 0 ? Math.round((ctx.parsed / totalVotes) * 100) : 0;
+                return ` ${ctx.label}: ${ctx.parsed} votes (${pct}%)`;
+              }
+            }
+          }
         }
       }
     });
+  },
+
+  // Auto-generate all 3 documents when results are published
+  async autoGenerateAllDocs(el, teams, votes, totalVotes) {
+    try {
+      // 1. PDF Certificate
+      this.generatePDF(el, teams, votes, totalVotes);
+      await new Promise(r => setTimeout(r, 600));
+
+      // 2. DOCX Report
+      this.generateDOCX(el, teams, votes, totalVotes);
+      await new Promise(r => setTimeout(r, 600));
+
+      // 3. Public Notice JPG
+      await this.generateNoticeJPG(el, teams, votes, totalVotes, false);
+    } catch (err) {
+      console.warn('Auto-doc generation error:', err);
+    }
   },
 
   generatePDF(el, teams, votes, totalVotes) {
