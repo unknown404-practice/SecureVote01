@@ -173,7 +173,7 @@
   <section id="manual-organizer-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:1.5rem;">
-        <button class="btn btn-secondary btn-sm btn-back" title="Go Back"><i data-lucide="arrow-left"></i></button>
+        <button onclick="if(typeof App!=='undefined') App.showSection('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
         <div class="logo" style="font-weight: 800; font-size: 1.5rem; display: flex; align-items: center; gap: 0.75rem;"><i data-lucide="book-open" class="text-primary"></i> ORGANIZER MANUAL</div>
       </div>
     </header>
@@ -220,7 +220,7 @@
   <section id="manual-voter-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:1.5rem;">
-        <button class="btn btn-secondary btn-sm btn-back" title="Go Back"><i data-lucide="arrow-left"></i></button>
+        <button onclick="if(typeof App!=='undefined') App.showSection('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
         <div class="logo" style="font-weight: 800; font-size: 1.5rem; display: flex; align-items: center; gap: 0.75rem;"><i data-lucide="user-check" class="text-accent"></i> OFFICIAL VOTER MANUAL</div>
       </div>
     </header>
@@ -272,7 +272,7 @@
   <section id="organizer-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:1rem; overflow:hidden;">
-        <button class="btn btn-secondary btn-sm btn-back" title="Go Back" style="flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
+        <button onclick="if(typeof App!=='undefined') App.showSection('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
         <div class="logo" style="font-weight: 800; font-size: clamp(0.85rem, 3vw, 1.4rem); display: flex; align-items: center; gap: 0.5rem; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i data-lucide="settings" class="icon-primary" style="flex-shrink:0;"></i> ORGANIZER PORTAL</div>
       </div>
     </header>
@@ -443,9 +443,7 @@
   <section id="voter-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:1rem; overflow:hidden; flex:1;">
-        <button onclick="if(typeof Voter!=='undefined') Voter.showDashboard();" class="btn btn-secondary btn-sm" title="Back to Hub" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;">
-          <i data-lucide="arrow-left"></i>
-        </button>
+        <button onclick="if(typeof App!=='undefined') App.showSection('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
         <div class="logo" style="font-weight:800; font-size:clamp(0.9rem,3vw,1.5rem); display:flex; align-items:center; gap:0.5rem; white-space:nowrap;">
           <i data-lucide="vote" class="text-accent" style="flex-shrink:0;"></i> OFFICIAL BALLOT BOOTH
         </div>
@@ -777,9 +775,7 @@
   <section id="results-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
-        <button onclick="if(typeof App!=='undefined') App.showSection('organizer-screen');" class="btn btn-secondary btn-sm" title="Back to Dashboard" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;">
-          <i data-lucide="arrow-left"></i>
-        </button>
+        <button onclick="if(typeof App!=='undefined') App.showSection('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
         <div class="logo" style="font-weight:800; font-size:clamp(0.85rem,3vw,1.4rem); display:flex; align-items:center; gap:0.5rem; white-space:nowrap; overflow:hidden;"><i data-lucide="gavel" class="text-primary" style="flex-shrink:0;"></i> <span style="overflow:hidden; text-overflow:ellipsis;">CERTIFIED RESULTS</span></div>
       </div>
     </header>
