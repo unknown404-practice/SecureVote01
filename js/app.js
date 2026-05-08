@@ -175,6 +175,10 @@ const App = {
       btn.addEventListener('click', () => {
         if (Auth.currentPortal === 'organizer') {
           PortalGuard.exitOrganizer();
+        } else if (Auth.currentPortal === 'voter') {
+          // Always return an authenticated voter directly to the booth
+          this.navigateTo('voter-screen');
+          if (typeof Voter !== 'undefined') Voter.showDashboard();
         } else {
           this.navigateTo('role-screen');
         }
@@ -235,6 +239,10 @@ const Navigation = {
       btn.addEventListener('click', () => {
         if (Auth.currentPortal === 'organizer') {
           PortalGuard.exitOrganizer();
+        } else if (Auth.currentPortal === 'voter') {
+          // Always return authenticated voter to the booth
+          App.navigateTo('voter-screen');
+          if (typeof Voter !== 'undefined') Voter.showDashboard();
         } else {
           App.navigateTo('role-screen');
         }
