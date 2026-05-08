@@ -40,7 +40,7 @@ const Results = {
   },
 
   updateUI(data) {
-    const el = data.config || {};
+    const el = data.election || data.config || {};
     const teams = data.teams || [];
     const votes = data.votes || {};
 

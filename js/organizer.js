@@ -101,17 +101,30 @@ const Organizer = {
     // Publish — requires ORGANIZER CODE re-verification
     safeBind('btn-publish-results', 'click', async () => {
       if (!PortalGuard.requireOrganizer()) return;
-      PortalGuard.showPublishConfirm(async () => {
-        try {
-          await DB.publishToCloud();
-          DB.setStatus('published');
-          this.stopLiveCounting();
-          App.navigateTo('results-screen');
-          if (typeof Results !== 'undefined') Results.render();
-        } catch (e) {
-          alert("PUBLISH_FAILED: " + e.message);
-        }
-      });
+
+      const storedCode = localStorage.getItem('sv_org_code') || 'ORG-2026';
+      const entered = prompt(
+        '🔐 SECURE RESULTS CERTIFICATION\n\n' +
+        'Enter your Organization Secret Code to finalize and publish the official election results.\n\n' +
+        'This action is irreversible.'
+      );
+      if (entered === null) return; // cancelled
+      if (entered.trim() !== storedCode.trim()) {
+        return alert('❌ AUTHORIZATION DENIED: Incorrect secret code. Results not published.');
+      }
+
+      try {
+        DB.setStatus('COMPLETED');
+        await DB.publishToCloud();
+        this.stopLiveCounting();
+        alert('✅ RESULTS CERTIFIED & PUBLISHED to Cloud successfully.');
+        this.renderState();
+        App.navigateTo('results-screen');
+        if (typeof Results !== 'undefined') Results.render();
+      } catch (e) {
+        DB.setStatus('active'); // rollback on error
+        alert('PUBLISH_FAILED: ' + e.message);
+      }
     });
 
     // Exit
