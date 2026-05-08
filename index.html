@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -173,7 +173,7 @@
   <section id="manual-organizer-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:1.5rem;">
-        <button onclick="if(typeof App!=='undefined') App.showSection('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
+        <button onclick="if(typeof App!=='undefined') App.navigateTo('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
         <div class="logo" style="font-weight: 800; font-size: 1.5rem; display: flex; align-items: center; gap: 0.75rem;"><i data-lucide="book-open" class="text-primary"></i> ORGANIZER MANUAL</div>
       </div>
     </header>
@@ -220,7 +220,7 @@
   <section id="manual-voter-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:1.5rem;">
-        <button onclick="if(typeof App!=='undefined') App.showSection('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
+        <button onclick="if(typeof App!=='undefined') App.navigateTo('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
         <div class="logo" style="font-weight: 800; font-size: 1.5rem; display: flex; align-items: center; gap: 0.75rem;"><i data-lucide="user-check" class="text-accent"></i> OFFICIAL VOTER MANUAL</div>
       </div>
     </header>
@@ -272,7 +272,7 @@
   <section id="organizer-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:1rem; overflow:hidden;">
-        <button onclick="if(typeof App!=='undefined') App.showSection('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
+        <button onclick="if(typeof App!=='undefined') App.navigateTo('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
         <div class="logo" style="font-weight: 800; font-size: clamp(0.85rem, 3vw, 1.4rem); display: flex; align-items: center; gap: 0.5rem; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i data-lucide="settings" class="icon-primary" style="flex-shrink:0;"></i> ORGANIZER PORTAL</div>
       </div>
     </header>
@@ -775,7 +775,7 @@
   <section id="results-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
-        <button onclick="if(typeof App!=='undefined') App.showSection('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
+        <button onclick="if(typeof App!=='undefined') App.navigateTo('role-screen');" class="btn btn-secondary btn-sm" title="Back to Main" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
         <div class="logo" style="font-weight:800; font-size:clamp(0.85rem,3vw,1.4rem); display:flex; align-items:center; gap:0.5rem; white-space:nowrap; overflow:hidden;"><i data-lucide="gavel" class="text-primary" style="flex-shrink:0;"></i> <span style="overflow:hidden; text-overflow:ellipsis;">CERTIFIED RESULTS</span></div>
       </div>
     </header>
@@ -815,7 +815,7 @@
 
       </div><!-- /results-grid -->
 
-      <!-- DOWNLOAD ACTION BAR — full width, always below the grid -->
+      <!-- DOWNLOAD ACTION BAR â€” full width, always below the grid -->
       <div class="results-action-bar">
         <button id="btn-download-report" class="btn btn-primary results-action-btn">
           <i data-lucide="file-text"></i> DOWNLOAD PDF CERTIFICATE
@@ -836,9 +836,9 @@
   <div id="ticket-template" style="position:fixed; top:0; left:-10000px; background:white; color:black; width:800px; height:400px; display:flex; border:6px solid #0f172a; font-family:'Inter', sans-serif; z-index:-1000;">
     <!-- Watermark (behind everything, does NOT overlap QR panel) -->
     <img id="tpl-watermark" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.08; width:60%; z-index:0; pointer-events:none; filter:grayscale(1);">
-    <!-- LEFT INFO PANEL — logo lives HERE, never over the QR -->
+    <!-- LEFT INFO PANEL â€” logo lives HERE, never over the QR -->
     <div style="flex:1; padding:25px 30px; border-right:3px dashed #94a3b8; display:flex; flex-direction:column; z-index:1;">
-      <!-- Logo at top of LEFT panel — zero overlap with QR -->
+      <!-- Logo at top of LEFT panel â€” zero overlap with QR -->
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
         <img id="tpl-logo" style="width:50px; height:50px; object-fit:contain; border-radius:6px; border:1px solid #e2e8f0; flex-shrink:0;">
         <div>
@@ -866,9 +866,9 @@
         <div style="font-size:11px; color:#ef4444; font-weight:900; text-align:right; line-height: 1.2;">AUTHORIZED DOCUMENT<br>SECURE LOCAL LOCK ACTIVE</div>
       </div>
     </div>
-  <!-- RIGHT QR PANEL — completely clean, no overlapping elements -->
+  <!-- RIGHT QR PANEL â€” completely clean, no overlapping elements -->
     <div style="width:260px; padding:20px 20px 16px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f8fafc; z-index:1;">
-      <!-- White quiet zone wrapper — required by QR spec for reliable scanning -->
+      <!-- White quiet zone wrapper â€” required by QR spec for reliable scanning -->
       <div style="background:white; padding:10px; border-radius:4px; display:inline-block; line-height:0;">
         <div id="tpl-qr"></div>
       </div>
@@ -1136,3 +1136,4 @@
   <script src="js/app.js"></script>
 </body>
 </html>
+

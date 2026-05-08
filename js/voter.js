@@ -1,8 +1,8 @@
-/**
- * Voter Booth Logic — Bulletproof V3
- * SCAN   → Html5Qrcode (camera)
- * UPLOAD → jsQR via Canvas (completely independent, no camera needed)
- * VERIFY → Manual text entry (100% independent)
+﻿/**
+ * Voter Booth Logic â€” Bulletproof V3
+ * SCAN   â†’ Html5Qrcode (camera)
+ * UPLOAD â†’ jsQR via Canvas (completely independent, no camera needed)
+ * VERIFY â†’ Manual text entry (100% independent)
  */
 
 const Voter = {
@@ -14,7 +14,7 @@ const Voter = {
     this.bindEvents();
   },
 
-  // ─── CAMERA SCANNER (Html5Qrcode) ────────────────────────────────────────
+  // â”€â”€â”€ CAMERA SCANNER (Html5Qrcode) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async ensureScanner() {
     if (this.html5QrCode) return true;
     if (typeof Html5Qrcode === 'undefined') {
@@ -45,9 +45,9 @@ const Voter = {
     }
   },
 
-  // ─── FILE UPLOAD — Tile-Based Deep QR Scanner ───────────────
+  // â”€â”€â”€ FILE UPLOAD â€” Tile-Based Deep QR Scanner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Specifically designed to detect small QR codes on printed tickets.
-  // Strategy: scan full image → tile grid (3×3) → corner quadrants,
+  // Strategy: scan full image â†’ tile grid (3Ã—3) â†’ corner quadrants,
   // each with aggressive upscaling + binary threshold preprocessing.
   async scanQRFromFile(file) {
     return new Promise((resolve, reject) => {
@@ -57,7 +57,7 @@ const Voter = {
         img.onload = () => {
           const W = img.width, H = img.height;
 
-          // ── Helpers ─────────────────────────────────────────
+          // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           const mk = (w, h) => {
             const c = document.createElement('canvas');
             c.width = w; c.height = h; return c;
@@ -72,7 +72,7 @@ const Voter = {
             ctx.filter = 'none';
           };
 
-          // Binary threshold: converts to pure black/white — ideal for jsQR
+          // Binary threshold: converts to pure black/white â€” ideal for jsQR
           const applyThreshold = (canvas, thresh = 128) => {
             const ctx = canvas.getContext('2d');
             const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -90,7 +90,7 @@ const Voter = {
             const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const result = jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
             if (result && result.data) {
-              console.log(`[QR-Scanner] ✓ Decoded: "${result.data}" — via ${label}`);
+              console.log(`[QR-Scanner] âœ“ Decoded: "${result.data}" â€” via ${label}`);
               return result.data;
             }
             return null;
@@ -124,13 +124,13 @@ const Voter = {
             return null;
           };
 
-          // ── Phase 1: Full Image (4 upscale levels) ──────────
+          // â”€â”€ Phase 1: Full Image (4 upscale levels) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           for (const scale of [1, 2, 3, 4]) {
             const r = scanRegion(0, 0, W, H, scale, `full@${scale}x`);
             if (r) return resolve(r);
           }
 
-          // ── Phase 2: 3×3 Tile Grid ───────────────────────────
+          // â”€â”€ Phase 2: 3Ã—3 Tile Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           // Tiles with 10% overlap to catch QR codes at tile edges
           const cols = 3, rows = 3;
           const overlap = 0.10;
@@ -147,13 +147,13 @@ const Voter = {
             }
           }
 
-          // ── Phase 3: 4 Corner Quadrants (ticket QR is usually bottom-right) ──
+          // â”€â”€ Phase 3: 4 Corner Quadrants (ticket QR is usually bottom-right) â”€â”€
           const qW = Math.floor(W * 0.45), qH = Math.floor(H * 0.45);
           const corners = [
             [0,         0,        'top-left'],
             [W - qW,    0,        'top-right'],
             [0,         H - qH,   'bottom-left'],
-            [W - qW,    H - qH,   'bottom-right'], // ← ticket QR location
+            [W - qW,    H - qH,   'bottom-right'], // â† ticket QR location
           ];
           for (const [cx, cy, name] of corners) {
             for (const scale of [6, 8]) {
@@ -162,7 +162,7 @@ const Voter = {
             }
           }
 
-          // ── Phase 4: Right Half + Bottom Strip (ticket-specific) ──
+          // â”€â”€ Phase 4: Right Half + Bottom Strip (ticket-specific) â”€â”€
           const rightHalf = scanRegion(Math.floor(W * 0.5), 0, Math.floor(W * 0.5), H, 6, 'right-half@6x');
           if (rightHalf) return resolve(rightHalf);
 
@@ -172,9 +172,9 @@ const Voter = {
           reject(new Error(
             "No QR code detected after deep scan.\n\n" +
             "TIP: Make sure the QR code is:\n" +
-            "• Clearly visible and not covered\n" +
-            "• Not blurry or glare-affected\n" +
-            "• Well-lit when photographed"
+            "â€¢ Clearly visible and not covered\n" +
+            "â€¢ Not blurry or glare-affected\n" +
+            "â€¢ Well-lit when photographed"
           ));
         };
         img.onerror = () => reject(new Error("Failed to load image file"));
@@ -185,7 +185,7 @@ const Voter = {
     });
   },
 
-  // ─── EVENT BINDING ───────────────────────────────────────────────────────
+  // â”€â”€â”€ EVENT BINDING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   bindEvents() {
     const safeBind = (id, event, cb) => {
       const el = document.getElementById(id);
@@ -212,7 +212,7 @@ const Voter = {
       PortalGuard.exitVoter();
     });
 
-    // ── VERIFY TICKET (Manual entry) ──────────────────────────────────────
+    // â”€â”€ VERIFY TICKET (Manual entry) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     safeBind('btn-enter-voter', 'click', () => {
       const input = document.getElementById('voter-id-input');
       if (input && input.value.trim()) {
@@ -230,7 +230,7 @@ const Voter = {
       }
     });
 
-    // ── SCAN (Camera via Html5Qrcode) ─────────────────────────────────────
+    // â”€â”€ SCAN (Camera via Html5Qrcode) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     safeBind('btn-scan-camera', 'click', async () => {
       if (!(await this.ensureScanner())) return;
 
@@ -266,7 +266,7 @@ const Voter = {
       }
     });
 
-    // ── UPLOAD (jsQR — completely independent of camera) ──────────────────
+    // â”€â”€ UPLOAD (jsQR â€” completely independent of camera) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const uploadInput = document.getElementById('qr-upload');
     if (uploadInput) {
       uploadInput.addEventListener('change', async (e) => {
@@ -283,7 +283,7 @@ const Voter = {
         let origHtml = '';
         if (uploadLabel) {
           origHtml = uploadLabel.innerHTML;
-          uploadLabel.innerHTML = '⏳ SCANNING...';
+          uploadLabel.innerHTML = 'â³ SCANNING...';
         }
 
         try {
@@ -308,7 +308,7 @@ const Voter = {
     }
   },
 
-  // ─── AUTH FLOW ───────────────────────────────────────────────────────────
+  // â”€â”€â”€ AUTH FLOW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async handleAuthAttempt(rawInput) {
     const input = (rawInput || '').trim();
     if (!input) return alert("Please enter or scan a valid Voter ID.");
@@ -355,7 +355,7 @@ const Voter = {
     App.navigateTo('voter-screen');
   },
 
-  // ─── DASHBOARD / SIDEBAR ─────────────────────────────────────────────────
+  // â”€â”€â”€ DASHBOARD / SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   switchTab(tab) {
     // Update Bottom Nav
     document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.remove('active'));
@@ -395,7 +395,7 @@ const Voter = {
     if (window.lucide) lucide.createIcons();
   },
 
-  // Go back to dashboard — forcefully hide booth, show dashboard hub
+  // Go back to dashboard â€” forcefully hide booth, show dashboard hub
   showDashboard() {
     const boothLayout   = document.querySelector('.booth-layout');
     const dashOverview  = document.getElementById('voter-dashboard-overview');
@@ -419,11 +419,11 @@ const Voter = {
     if (window.lucide) lucide.createIcons();
   },
 
-  // Guard: called when voter tries to leave the booth via top ← arrow
+  // Guard: called when voter tries to leave the booth via top â† arrow
   exitBoothGuard() {
     // If voter already voted, let them leave cleanly
     if (this.hasVoted) {
-      if (typeof App !== 'undefined') App.showSection('role-screen');
+      if (typeof App !== 'undefined') App.navigateTo('role-screen');
       return;
     }
 
@@ -444,10 +444,10 @@ const Voter = {
         <h2 style="font-size:1.4rem;font-weight:900;color:white;margin-bottom:0.75rem;line-height:1.3;">Please Don't Leave Without Voting!</h2>
         <p style="color:#cbd5e1;font-size:0.9rem;line-height:1.6;margin-bottom:1.75rem;">
           Your vote matters. You have not cast your ballot yet.<br>
-          <strong style="color:#f59e0b;">Every vote counts</strong> — the election outcome depends on your participation.
+          <strong style="color:#f59e0b;">Every vote counts</strong> â€” the election outcome depends on your participation.
         </p>
         <button id="exit-guard-stay" style="width:100%;padding:1rem;border:none;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-weight:900;font-size:1rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:0.75rem;">
-          ✓ Stay &amp; Cast My Vote
+          âœ“ Stay &amp; Cast My Vote
         </button>
         <button id="exit-guard-leave" style="width:100%;padding:0.75rem;border:1px solid #475569;border-radius:12px;background:transparent;color:#64748b;font-weight:700;font-size:0.8rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
           Exit Without Voting
@@ -460,7 +460,7 @@ const Voter = {
     document.getElementById('exit-guard-backdrop').onclick = () => modal.remove();
     document.getElementById('exit-guard-leave').onclick = () => {
       modal.remove();
-      if (typeof App !== 'undefined') App.showSection('role-screen');
+      if (typeof App !== 'undefined') App.navigateTo('role-screen');
     };
   },
 
@@ -523,7 +523,7 @@ const Voter = {
     let pollBadge, pollColor;
     if (now < startTime) { pollBadge = 'NOT STARTED'; pollColor = 'var(--accent)'; }
     else if (now > endTime) { pollBadge = 'CLOSED'; pollColor = 'var(--error)'; }
-    else { pollBadge = '🟢 LIVE'; pollColor = 'var(--success)'; }
+    else { pollBadge = 'ðŸŸ¢ LIVE'; pollColor = 'var(--success)'; }
 
     const row = (icon, label, value) => `
       <div class="glass-panel" style="padding:1rem !important; display:flex; gap:0.75rem; align-items:center;">
@@ -554,7 +554,7 @@ const Voter = {
       </div>
 
       ${row('info', 'ELECTION PURPOSE', el.reason || 'Official Ballot Process')}
-      ${row('clock', 'POLL SCHEDULE', `${el.start} – ${el.end} (Local Time)`)}
+      ${row('clock', 'POLL SCHEDULE', `${el.start} â€“ ${el.end} (Local Time)`)}
       ${row('calendar', 'SCHEDULED DATE', el.date)}
       ${row('map-pin', 'VERIFIED LOCATION', `${el.location.address}, ${el.location.city}`)}
       
@@ -584,7 +584,7 @@ const Voter = {
     if (teams.length === 0) {
       container.innerHTML = `
         <div style="text-align:center; padding:4rem 2rem; color:var(--text-secondary);">
-          <div style="font-size:3rem; margin-bottom:1rem;">🗳️</div>
+          <div style="font-size:3rem; margin-bottom:1rem;">ðŸ—³ï¸</div>
           <p style="font-weight:700; letter-spacing:1px;">NO CANDIDATES REGISTERED YET</p>
           <p style="font-size:0.85rem; margin-top:0.5rem;">The organizer has not added any participants to this election.</p>
         </div>`;
@@ -634,7 +634,7 @@ const Voter = {
         "
         onmouseover="this.style.background='${color}'; this.style.color='#0f172a';"
         onmouseout="this.style.background='linear-gradient(135deg, ${color}22, ${color}44)'; this.style.color='${color}';"
-        >✓ VOTE</button>
+        >âœ“ VOTE</button>
       `;
       container.appendChild(item);
     });
@@ -647,7 +647,7 @@ const Voter = {
     });
   },
 
-  // Show smooth inline vote confirmation modal — no browser dialogs
+  // Show smooth inline vote confirmation modal â€” no browser dialogs
   showVoteModal(teamNumeric) {
     const teams = DB.getTeams();
     const team = teams.find(t => String(t.numeric) === String(teamNumeric));
@@ -689,7 +689,7 @@ const Voter = {
         box-shadow: 0 30px 80px rgba(0,0,0,0.6);
       ">
         <div style="font-size:0.7rem; color:var(--text-secondary); font-weight:800; letter-spacing:3px; text-transform:uppercase; margin-bottom:1.5rem;">
-          🔐 SECURE BALLOT CONFIRMATION
+          ðŸ” SECURE BALLOT CONFIRMATION
         </div>
 
         <div style="width:80px; height:80px; border-radius:50%; overflow:hidden; background:white; border:4px solid ${color}; margin: 0 auto 1.25rem; display:flex; align-items:center; justify-content:center;">
@@ -700,7 +700,7 @@ const Voter = {
         <div style="font-size:0.8rem; font-weight:800; color:${color}; letter-spacing:2px; text-transform:uppercase; margin-bottom:1.5rem;">BALLOT ID: #${team.numeric}</div>
 
         <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.6; margin-bottom:2rem; background:rgba(255,255,255,0.03); border-radius:12px; padding:1rem;">
-          ⚠️ This action is <strong style="color:white;">irreversible</strong>. Once submitted, your vote is cryptographically sealed and cannot be changed.
+          âš ï¸ This action is <strong style="color:white;">irreversible</strong>. Once submitted, your vote is cryptographically sealed and cannot be changed.
         </p>
 
         <div style="display:flex; gap:1rem; justify-content:center;">
@@ -710,7 +710,7 @@ const Voter = {
             color:var(--text-secondary); font-weight:800; font-size:0.9rem;
             letter-spacing:1px; cursor:pointer; text-transform:uppercase;
             transition: all 0.2s;
-          ">✕ CANCEL</button>
+          ">âœ• CANCEL</button>
           <button id="btn-vote-confirm" style="
             flex:2; padding:1rem; border-radius:12px;
             background:linear-gradient(135deg, ${color}, ${color}cc);
@@ -718,7 +718,7 @@ const Voter = {
             font-weight:900; font-size:1rem; letter-spacing:2px;
             cursor:pointer; text-transform:uppercase;
             transition: all 0.2s; box-shadow: 0 8px 24px ${color}44;
-          ">✓ CONFIRM VOTE</button>
+          ">âœ“ CONFIRM VOTE</button>
         </div>
       </div>
     `;
@@ -729,11 +729,11 @@ const Voter = {
     document.getElementById('btn-vote-cancel').onclick = () => modal.remove();
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
-    // Confirm → cast vote
+    // Confirm â†’ cast vote
     document.getElementById('btn-vote-confirm').onclick = async () => {
       const confirmBtn = document.getElementById('btn-vote-confirm');
       confirmBtn.disabled = true;
-      confirmBtn.innerHTML = '⏳ SUBMITTING...';
+      confirmBtn.innerHTML = 'â³ SUBMITTING...';
 
       const result = await DB.castVote(this.activeVoterId, teamNumeric, this.activeElectionId);
       modal.remove();
@@ -752,7 +752,7 @@ const Voter = {
     if (container) {
       container.querySelectorAll('.ballot-btn').forEach(btn => {
         btn.disabled = true;
-        btn.textContent = '✓ VOTED';
+        btn.textContent = 'âœ“ VOTED';
         btn.style.opacity = '0.4';
         btn.style.cursor = 'not-allowed';
       });
@@ -786,7 +786,7 @@ const Voter = {
 
       <!-- The 4:3 Banner -->
       <div id="sv-banner" style="
-        /* 4:3 ratio — width drives height */
+        /* 4:3 ratio â€” width drives height */
         width: min(72vw, 420px);
         aspect-ratio: 4 / 3;
 
@@ -819,13 +819,13 @@ const Voter = {
           display:flex; align-items:center; justify-content:center;
           flex-shrink:0;
         ">
-          <span style="font-size:1.75rem; line-height:1;">✅</span>
+          <span style="font-size:1.75rem; line-height:1;">âœ…</span>
         </div>
 
         <!-- Badge -->
         <div style="font-size:0.55rem;font-weight:900;letter-spacing:4px;
           text-transform:uppercase;color:rgba(34,197,94,0.75);">
-          🔐 VOTE CERTIFIED
+          ðŸ” VOTE CERTIFIED
         </div>
 
         <!-- Heading -->
@@ -858,12 +858,12 @@ const Voter = {
         onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 32px rgba(34,197,94,0.55)';"
         onmouseout="this.style.transform='';this.style.boxShadow='0 6px 24px rgba(34,197,94,0.4)';"
         >
-          🔒 Exit Secure Booth
+          ðŸ”’ Exit Secure Booth
         </button>
 
         <!-- Footer -->
         <p style="font-size:0.6rem;color:rgba(255,255,255,0.2);letter-spacing:0.5px;margin:0;">
-          SecureVote · Session Terminated
+          SecureVote Â· Session Terminated
         </p>
       </div>
     `;
@@ -889,14 +889,14 @@ const Voter = {
       padding:2rem; text-align:center; margin-bottom:2rem;
     `;
     statusEl.innerHTML = `
-      <div style="font-size:2.5rem; margin-bottom:1rem;">⛔</div>
+      <div style="font-size:2.5rem; margin-bottom:1rem;">â›”</div>
       <div style="color:var(--error); font-weight:900; font-size:1.1rem; text-transform:uppercase; letter-spacing:2px; margin-bottom:0.75rem;">PROTOCOL VIOLATION</div>
       <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.5; max-width:350px; margin:0 auto 1.5rem;">${reason}</p>
       <button id="btn-error-exit" style="
         background:transparent; border:1px solid var(--error); color:var(--error);
         padding:0.75rem 1.75rem; border-radius:10px; font-weight:800;
         font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer;
-      ">↩ GO BACK</button>
+      ">â†© GO BACK</button>
     `;
     document.getElementById('btn-error-exit').onclick = () => { statusEl.style.display = 'none'; };
   },
@@ -905,3 +905,4 @@ const Voter = {
     this.showVoteModal(teamNumeric);
   }
 };
+
