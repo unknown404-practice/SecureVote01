@@ -370,15 +370,16 @@ const Voter = {
       sidebar.classList.remove('active');
       main.style.display = 'block';
       
-      const ballot = document.querySelector('.booth-layout'); // The grid container I added earlier
+      const boothLayout = document.querySelector('.booth-layout');
       const dashOverview = document.getElementById('voter-dashboard-overview');
-      const ballotTitle = main.querySelector('h2'); // This might catch the wrong h2 if not careful
 
       if (tab === 'booth') {
-        if (ballot) ballot.style.display = 'grid';
+        if (boothLayout) boothLayout.style.display = 'grid';
         if (dashOverview) dashOverview.style.display = 'none';
+        // Always re-render ballot so candidates show up
+        this.renderBallot(null);
       } else {
-        if (ballot) ballot.style.display = 'none';
+        if (boothLayout) boothLayout.style.display = 'none';
         if (dashOverview) dashOverview.style.display = 'block';
       }
     } else {
@@ -518,7 +519,9 @@ const Voter = {
 
 
   renderBallot(el) {
-    const teams = el ? (el.teams || []) : DB.getTeams();
+    const elData = el || DB.getElection();
+    const cloudData = elData && elData.teams ? elData : null;
+    const teams = cloudData ? cloudData.teams : DB.getTeams();
     const container = document.getElementById('ballot-teams');
     if (!container) return;
     container.innerHTML = '';
@@ -526,21 +529,65 @@ const Voter = {
     const status = document.getElementById('ballot-status');
     if (status) status.style.display = 'none';
 
-    teams.forEach(t => {
+    if (teams.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:4rem 2rem; color:var(--text-secondary);">
+          <div style="font-size:3rem; margin-bottom:1rem;">🗳️</div>
+          <p style="font-weight:700; letter-spacing:1px;">NO CANDIDATES REGISTERED YET</p>
+          <p style="font-size:0.85rem; margin-top:0.5rem;">The organizer has not added any participants to this election.</p>
+        </div>`;
+      return;
+    }
+
+    const colors = ['#38bdf8','#fbbf24','#f87171','#4ade80','#818cf8','#f472b6','#fb923c','#a78bfa'];
+
+    teams.forEach((t, i) => {
+      const color = colors[i % colors.length];
       const item = document.createElement('div');
-      item.className = 'ballot-item';
       item.id = `ballot-team-${t.numeric}`;
+      item.style.cssText = `
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-left: 4px solid ${color};
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+      `;
       item.innerHTML = `
-        <div class="ballot-team-info">
-          <img src="${t.logo}" class="team-logo" onerror="this.style.display='none'">
-          <div class="team-name">${t.name}</div>
+        <div style="width:64px; height:64px; border-radius:50%; overflow:hidden; background:white; border:3px solid ${color}; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+          <img src="${t.logo}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=font-size:1.5rem;font-weight:900;color:${color};>${t.name[0]}</span>'">
         </div>
-        <button class="btn btn-primary ballot-btn" data-numeric="${t.numeric}" style="font-weight:900; letter-spacing:1px; font-size:1.1rem; text-transform:uppercase;">VOTE FOR BALLOT #${t.numeric}</button>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:1.2rem; font-weight:900; color:white; margin-bottom:0.25rem; letter-spacing:0.5px;">${t.name}</div>
+          <div style="font-size:0.75rem; font-weight:800; color:${color}; letter-spacing:2px; text-transform:uppercase;">BALLOT ID: #${t.numeric}</div>
+        </div>
+        <button class="ballot-btn" data-numeric="${t.numeric}" style="
+          background: linear-gradient(135deg, ${color}22, ${color}44);
+          border: 2px solid ${color};
+          color: ${color};
+          font-weight: 900;
+          font-size: 0.9rem;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          padding: 0.85rem 1.75rem;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          flex-shrink: 0;
+        "
+        onmouseover="this.style.background='${color}'; this.style.color='#0f172a';"
+        onmouseout="this.style.background='linear-gradient(135deg, ${color}22, ${color}44)'; this.style.color='${color}';"
+        >✓ VOTE</button>
       `;
       container.appendChild(item);
     });
 
-    document.querySelectorAll('.ballot-btn').forEach(btn => {
+    container.querySelectorAll('.ballot-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const num = e.currentTarget.dataset.numeric;
         this.castVote(num);

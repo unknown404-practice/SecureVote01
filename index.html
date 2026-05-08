@@ -443,7 +443,12 @@
   <section id="voter-screen" class="view-section">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:1rem; overflow:hidden; flex:1;">
-        <div class="logo" style="font-weight:800; font-size:clamp(0.9rem,3vw,1.5rem); display:flex; align-items:center; gap:0.5rem; white-space:nowrap;"><i data-lucide="vote" class="text-accent" style="flex-shrink:0;"></i> OFFICIAL BALLOT BOOTH</div>
+        <button onclick="if(typeof Voter!=='undefined') Voter.showDashboard();" class="btn btn-secondary btn-sm" title="Back to Hub" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;">
+          <i data-lucide="arrow-left"></i>
+        </button>
+        <div class="logo" style="font-weight:800; font-size:clamp(0.9rem,3vw,1.5rem); display:flex; align-items:center; gap:0.5rem; white-space:nowrap;">
+          <i data-lucide="vote" class="text-accent" style="flex-shrink:0;"></i> OFFICIAL BALLOT BOOTH
+        </div>
       </div>
       <div id="display-voter-id" style="font-size:0.7rem; color:var(--primary); font-weight:900; letter-spacing:1px; flex-shrink:0;"></div>
     </header>
