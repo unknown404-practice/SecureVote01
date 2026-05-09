@@ -262,7 +262,8 @@ const App = {
             _subject: "SecureVote - Support Request",
             User: userEmail,
             Message: message,
-            Platform: "SecureVote Global Terminal"
+            Platform: "SecureVote Global Terminal",
+            Local_Time: new Date().toLocaleString()
           })
         });
         
