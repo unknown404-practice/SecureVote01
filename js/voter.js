@@ -910,14 +910,14 @@ const Voter = {
       padding:2rem; text-align:center; margin-bottom:2rem;
     `;
     statusEl.innerHTML = `
-      <div style="font-size:2.5rem; margin-bottom:1rem;">Ã¢â€ºâ€</div>
+      <div style="font-size:2.5rem; margin-bottom:1rem;">⛔</div>
       <div style="color:var(--error); font-weight:900; font-size:1.1rem; text-transform:uppercase; letter-spacing:2px; margin-bottom:0.75rem;">PROTOCOL VIOLATION</div>
       <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.5; max-width:350px; margin:0 auto 1.5rem;">${reason}</p>
       <button id="btn-error-exit" style="
         background:transparent; border:1px solid var(--error); color:var(--error);
         padding:0.75rem 1.75rem; border-radius:10px; font-weight:800;
         font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer;
-      ">Ã¢â€ Â© GO BACK</button>
+      ">← GO BACK</button>
     `;
     document.getElementById('btn-error-exit').onclick = () => { statusEl.style.display = 'none'; };
   },
