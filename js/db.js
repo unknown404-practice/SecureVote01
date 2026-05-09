@@ -159,6 +159,10 @@ const DB = {
     return localStorage.getItem(this.KEYS.ELECTION_ID);
   },
 
+  setStatus(status) {
+    localStorage.setItem(this.KEYS.STATUS, status);
+  },
+
   setElectionId(id) {
     localStorage.setItem(this.KEYS.ELECTION_ID, id);
   },
@@ -249,8 +253,8 @@ const DB = {
       const endTime = new Date(`${eData.date}T${eData.end}`);
 
       if (!isDemoBypass) {
-        if (now < startTime) return { valid: false, reason: `Voting protocol has not commenced. Scheduled to open at ${eData.start}.` };
-        if (now > endTime) return { valid: false, reason: `Voting protocol has concluded. Scheduled window closed at ${eData.end}.` };
+        if (now < startTime) return { valid: false, reason: `VOTING PROTOCOL HAS NOT COMMENCED. SCHEDULED TO OPEN AT ${eData.start}.` };
+        if (now > endTime) return { valid: false, reason: `VOTING SESSION IS OVER. THE SCHEDULED WINDOW CLOSED AT ${eData.end}.` };
       }
 
       return { valid: true, electionData: eData, cloudData: el };

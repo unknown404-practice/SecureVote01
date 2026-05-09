@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Voter Booth Logic Ã¢â‚¬â€ Bulletproof V3
  * SCAN   Ã¢â€ â€™ Html5Qrcode (camera)
  * UPLOAD Ã¢â€ â€™ jsQR via Canvas (completely independent, no camera needed)
@@ -539,7 +539,7 @@ const Voter = {
     let pollBadge, pollColor;
     if (now < startTime) { pollBadge = 'NOT STARTED'; pollColor = 'var(--accent)'; }
     else if (now > endTime) { pollBadge = 'CLOSED'; pollColor = 'var(--error)'; }
-    else { pollBadge = 'ðŸŸ¢ LIVE'; pollColor = 'var(--success)'; }
+    else { pollBadge = '🟢 LIVE'; pollColor = 'var(--success)'; }
 
     const row = (icon, label, value) => `
       <div class="glass-panel" style="padding:1rem !important; display:flex; gap:0.75rem; align-items:center;">
@@ -564,95 +564,8 @@ const Voter = {
           <div style="font-weight:900; color:${pollColor}; font-size:1.1rem; letter-spacing:1px;">${pollBadge}</div>
         </div>
         <div class="glass-panel" style="padding:1.25rem !important;">
-          <div style="color:var(--text-secondary); font-size:0.65rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:0.5rem;">DATA CHANNEL</div>
-          <div style="font-weight:900; color:var(--accent); font-size:1.1rem; letter-spacing:1px;">ENCRYPTED</div>
-        </div>
-      </div>
-
-      ${row('info', 'ELECTION PURPOSE', el.reason || 'Official Ballot Process')}
-      ${row('clock', 'POLL SCHEDULE', `${el.start} â€“ ${el.end} (Local Time)`)}
-      ${row('calendar', 'SCHEDULED DATE', el.date)}
-      ${row('map-pin', 'VERIFIED LOCATION', `${el.location.address}, ${el.location.city}`)}
-      
-      <div style="background:rgba(34,197,94,0.05); border:1px solid rgba(34,197,94,0.15); border-radius:12px; padding:1.25rem; margin-top:0.5rem; display:flex; gap:1rem; align-items:flex-start;">
-        <i data-lucide="shield-check" style="color:var(--success); width:20px; flex-shrink:0; margin-top:2px;"></i>
-        <div>
-          <div style="font-weight:900; color:var(--success); font-size:0.75rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:0.4rem;">LOCATION INTEGRITY ACTIVE</div>
-          <p style="font-size:0.8rem; color:var(--text-secondary); line-height:1.5;">This terminal is locked to the official GPS coordinates of the polling station. Remote access is prohibited.</p>
-        </div>
-      </div>
-    `;
-    if (window.lucide) lucide.createIcons();
-  },
-
-
-  renderBallot(el) {
-    const elData = el || DB.getElection();
-    const cloudData = elData && elData.teams ? elData : null;
-    const teams = cloudData ? cloudData.teams : DB.getTeams();
-    const container = document.getElementById('ballot-teams');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const status = document.getElementById('ballot-status');
-    if (status) status.style.display = 'none';
-
-    if (teams.length === 0) {
-      container.innerHTML = `
-        <div style="text-align:center; padding:4rem 2rem; color:var(--text-secondary);">
-          <div style="font-size:3rem; margin-bottom:1rem;">Ã°Å¸â€”Â³Ã¯Â¸Â</div>
-          <p style="font-weight:700; letter-spacing:1px;">NO CANDIDATES REGISTERED YET</p>
-          <p style="font-size:0.85rem; margin-top:0.5rem;">The organizer has not added any participants to this election.</p>
-        </div>`;
-      return;
-    }
-
-    const colors = ['#38bdf8','#fbbf24','#f87171','#4ade80','#818cf8','#f472b6','#fb923c','#a78bfa'];
-
-    teams.forEach((t, i) => {
-      const color = colors[i % colors.length];
-      const item = document.createElement('div');
-      item.id = `ballot-team-${t.numeric}`;
-      item.style.cssText = `
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-left: 4px solid ${color};
-        border-radius: 16px;
-        padding: 1.25rem;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 1.25rem;
-        transition: all 0.3s ease;
-        margin-bottom: 1rem;
-      `;
-      item.innerHTML = `
-        <div style="width:56px; height:56px; border-radius:50%; overflow:hidden; background:white; border:3px solid ${color}; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
-          <img src="${t.logo}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=font-size:1.2rem;font-weight:900;color:${color};>${t.name[0]}</span>'">
-        </div>
-        <div style="flex:1; min-width:180px;">
-          <div style="font-size:1.1rem; font-weight:900; color:white; margin-bottom:0.2rem; letter-spacing:0.5px;">${t.name}</div>
-          <div style="font-size:0.7rem; font-weight:800; color:${color}; letter-spacing:1.5px; text-transform:uppercase;">BALLOT ID: #${t.numeric}</div>
-        </div>
-        <button class="ballot-btn" data-numeric="${t.numeric}" style="
-          background: linear-gradient(135deg, ${color}22, ${color}44);
-          border: 2px solid ${color};
-          color: ${color};
-          font-weight: 900;
-          font-size: 0.8rem;
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-          padding: 0.75rem 1.5rem;
-          border-radius: 10px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          white-space: nowrap;
-          flex-shrink: 0;
-          margin-left: auto;
-        "
-        onmouseover="this.style.background='${color}'; this.style.color='#0f172a';"
-        onmouseout="this.style.background='linear-gradient(135deg, ${color}22, ${color}44)'; this.style.color='${color}';"
-        >âœ“ VOTE</button>
+          <div style="color:var(--text-secondary); font-size:0.65rem; font-weig        onmouseout="this.style.background='linear-gradient(135deg, ${color}22, ${color}44)'; this.style.color='${color}';"
+        >✓ VOTE</button>
       `;
       container.appendChild(item);
     });
@@ -665,7 +578,6 @@ const Voter = {
     });
   },
 
-  // Show smooth inline vote confirmation modal Ã¢â‚¬â€ no browser dialogs
   showVoteModal(teamNumeric) {
     const teams = DB.getTeams();
     const team = teams.find(t => String(t.numeric) === String(teamNumeric));
@@ -675,7 +587,6 @@ const Voter = {
     const idx = teams.indexOf(team);
     const color = colors[idx % colors.length];
 
-    // Remove any existing modal
     const existing = document.getElementById('vote-confirm-modal');
     if (existing) existing.remove();
 
@@ -743,15 +654,13 @@ const Voter = {
 
     document.body.appendChild(modal);
 
-    // Cancel
     document.getElementById('btn-vote-cancel').onclick = () => modal.remove();
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
-    // Confirm Ã¢â€ â€™ cast vote
     document.getElementById('btn-vote-confirm').onclick = async () => {
       const confirmBtn = document.getElementById('btn-vote-confirm');
       confirmBtn.disabled = true;
-       confirmBtn.innerHTML = '⌛ SUBMITTING...';
+      confirmBtn.innerHTML = '⌛ SUBMITTING...';
 
       const result = await DB.castVote(this.activeVoterId, teamNumeric, this.activeElectionId);
       modal.remove();
@@ -765,7 +674,6 @@ const Voter = {
   },
 
   showVoteSuccess(teamNumeric) {
-    // Lock all ballot buttons
     const container = document.getElementById('ballot-teams');
     if (container) {
       container.querySelectorAll('.ballot-btn').forEach(btn => {
@@ -776,7 +684,6 @@ const Voter = {
       });
     }
 
-    // Remove any leftover modal
     const old = document.getElementById('vote-success-modal');
     if (old) old.remove();
 
@@ -802,18 +709,105 @@ const Voter = {
         #sv-ring   { animation: svPulse 2s ease-in-out infinite; }
       </style>
 
-      <!-- The 4:3 Banner -->
       <div id="sv-banner" style="
-        /* 4:3 ratio â€” width drives height */
         width: min(72vw, 420px);
         aspect-ratio: 4 / 3;
-
         background: linear-gradient(160deg, rgba(15,23,42,0.97) 0%, rgba(10,20,40,0.98) 100%);
         border: 1px solid rgba(34,197,94,0.3);
         border-top: 4px solid #22c55e;
         border-radius: 22px;
-        box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 40px rgba(34,197,94,0.1);
+        box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 40px rgba(34,197,94,0.1);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 2rem; text-align: center; position: relative; overflow: hidden;
+      ">
+        <div id="sv-ring" style="width:72px; height:72px; border-radius:50%; background:rgba(34,197,94,0.12); border:2.5px solid #22c55e; display:flex; align-items:center; justify-content:center; margin-bottom:1.5rem; box-shadow:0 0 30px rgba(34,197,94,0.3);">
+           <i data-lucide="check" style="color:#22c55e; width:36px; height:36px; stroke-width:3;"></i>
+        </div>
 
+        <div style="font-size:0.75rem; color:#22c55e; font-weight:900; letter-spacing:4px; text-transform:uppercase; margin-bottom:0.75rem;">Ballot Certified</div>
+        <h2 style="font-size:1.8rem; font-weight:900; color:white; margin-bottom:0.75rem; letter-spacing:0.5px;">VOTE RECORDED</h2>
+        <p style="color:#94a3b8; font-size:0.95rem; line-height:1.6; max-width:280px; margin-bottom:2rem; font-weight:500;">Your cryptographic choice has been successfully sealed in the cloud.</p>
+
+        <button id="btn-thank-you-exit" style="
+          margin-top:0.4rem; padding:1rem 2rem;
+          background:linear-gradient(135deg,#22c55e,#16a34a);
+          border:none; border-radius:12px; color:#0f172a;
+          font-weight:900; font-size:0.9rem; letter-spacing:2px;
+          text-transform:uppercase; cursor:pointer;
+          box-shadow:0 6px 24px rgba(34,197,94,0.4);
+          transition:transform 0.2s; display:flex; align-items:center; gap:0.5rem;
+        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+          🚪 EXIT SECURE BOOTH
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    if (window.lucide) lucide.createIcons();
+
+    document.getElementById('btn-thank-you-exit').onclick = () => {
+      modal.remove();
+      if (typeof Assistant !== 'undefined') Assistant.wipeChat();
+      PortalGuard.exitVoter();
+    };
+  },
+
+  showVoteError(reason) {
+    const statusEl = document.getElementById('ballot-status');
+    if (!statusEl) return;
+
+    const isClosed = reason.includes('SESSION IS OVER');
+    const header = isClosed ? 'VOTING SESSION IS OVER' : 'PROTOCOL VIOLATION';
+    const btnText = isClosed ? '🚪 EXIT SECURE BOOTH' : '⬅️ GO BACK';
+    const icon = isClosed ? 'clock' : 'alert-octagon';
+
+    statusEl.style.cssText = `
+      display:block; background:rgba(239,68,68,0.08);
+      border:1px solid rgba(239,68,68,0.3); border-radius:16px;
+      padding:3rem 2rem; text-align:center; margin-bottom:2rem;
+    `;
+    
+    statusEl.innerHTML = `
+      <div style="display:flex; justify-content:center; margin-bottom:1.5rem;">
+        <div style="width:70px; height:70px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; border:2px solid var(--error);">
+           <i data-lucide="${icon}" style="width:35px; height:35px; color:var(--error);"></i>
+        </div>
+      </div>
+      <div style="color:var(--error); font-weight:900; font-size:1.4rem; text-transform:uppercase; letter-spacing:3px; margin-bottom:1rem;">${header}</div>
+      <p style="color:var(--text-secondary); font-size:1rem; line-height:1.6; max-width:450px; margin:0 auto 2rem; font-weight:500;">${reason}</p>
+      <button id="btn-error-exit" style="
+        background:${isClosed ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'transparent'};
+        border:${isClosed ? 'none' : '2px solid var(--error)'};
+        color:${isClosed ? '#0f172a' : 'var(--error)'};
+        padding:1rem 2.5rem; border-radius:12px; font-weight:900;
+        font-size:0.9rem; letter-spacing:2px; text-transform:uppercase; cursor:pointer;
+        box-shadow:${isClosed ? '0 6px 24px rgba(34,197,94,0.4)' : 'none'};
+        transition: transform 0.2s;
+      " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        ${btnText}
+      </button>
+    `;
+
+    if (window.lucide) lucide.createIcons();
+
+    document.getElementById('btn-error-exit').onclick = () => {
+      if (isClosed && typeof PortalGuard !== 'undefined') {
+        PortalGuard.exitVoter();
+      } else {
+        statusEl.style.display = 'none';
+      }
+    };
+  },
+
+  async castVote(teamNumeric) {
+    this.showVoteModal(teamNumeric);
+  }
+};
+  } else {
+        statusEl.style.display = 'none';
+      }
+    };
+  },
         display: flex;
         flex-direction: column;
         align-items: center;

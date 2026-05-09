@@ -305,41 +305,63 @@ const Results = {
       const appLogo = document.getElementById('notice-app-logo');
       if (appLogo) appLogo.src = el.logo || 'app_icon.png';
 
+      const winLogo = document.getElementById('notice-winner-logo');
+      if (winLogo) {
+        let winLogoSrc = (v > 0 && winner.logo) ? winner.logo : 'app_icon.png';
+        if (winLogoSrc.startsWith('http')) {
+          try { winLogoSrc = await DB.urlToBase64(winLogoSrc); } catch(e) { winLogoSrc = 'app_icon.png'; }
+        }
+        winLogo.src = winLogoSrc;
+      }
+
       document.getElementById('notice-winner-name').innerText = (v > 0 && !isDraft) ? winner.name : (isDraft ? "PENDING OFFICIAL COUNT" : "PROTOCOL CONCLUDED");
       document.getElementById('notice-timestamp').innerText = isDraft ? `DRAFT GENERATED ON: ${new Date().toLocaleString()}` : `CERTIFIED ON: ${new Date().toLocaleString()}`;
 
       // Breakdown in JPG
       const breakdown = document.getElementById('notice-breakdown-container');
-      breakdown.innerHTML = teams.slice(0, 10).map(t => {
+      
+      // SERIALIZATION: Map teams and ensure logos are ready for canvas
+      const breakdownHtml = await Promise.all(teams.slice(0, 10).map(async t => {
         const v = votes[t.numeric] || 0;
-        const logoSrc = (t.logo && t.logo.length > 5) ? t.logo : 'app_icon.png';
+        let logoSrc = (t.logo && t.logo.length > 5) ? t.logo : 'app_icon.png';
+        
+        // Base64 conversion for external URLs to avoid canvas tainting
+        if (logoSrc.startsWith('http')) {
+          try { logoSrc = await DB.urlToBase64(logoSrc); } catch(e) { logoSrc = 'app_icon.png'; }
+        }
+
         return `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px 25px; border-radius:15px; border: 1px solid rgba(255,255,255,0.1);">
             <div style="display:flex; align-items:center; gap:15px;">
-              <div style="width:55px; height:55px; background:rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                <img src="${logoSrc}" style="width:100%; height:100%; object-fit:cover;">
+              <div style="width:55px; height:55px; background:white; border: 2px solid rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                <img src="${logoSrc}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='app_icon.png'">
               </div>
               <span style="font-size:1.4rem; font-weight:700; letter-spacing:1px;">${t.name}</span>
             </div>
             <span style="font-size:1.4rem; color:var(--accent); font-weight:900;">${v} <span style="font-size:0.9rem; opacity:0.7;">VOTES</span></span>
           </div>
         `;
-      }).join('');
+      }));
+      breakdown.innerHTML = breakdownHtml.join('');
 
       // Create Logo Watermark Grid
       const watermark = document.getElementById('notice-watermark');
       watermark.innerHTML = '';
       if (teams.length > 0) {
-        for (let i = 0; i < 15; i++) {
-          const t = teams[i % teams.length];
-          const logoSrc = (t.logo && t.logo.length > 20) ? t.logo : 'https://via.placeholder.com/150?text=LOGO';
+        const watermarkLogo = (teams[0].logo && teams[0].logo.length > 10) ? teams[0].logo : 'app_icon.png';
+        let finalWatermark = watermarkLogo;
+        if (finalWatermark.startsWith('http')) {
+          try { finalWatermark = await DB.urlToBase64(finalWatermark); } catch(e) { finalWatermark = 'app_icon.png'; }
+        }
+
+        for (let i = 0; i < 12; i++) {
           const img = document.createElement('img');
-          img.src = logoSrc;
-          img.style.width = "150px";
-          img.style.height = "150px";
+          img.src = finalWatermark;
+          img.style.width = "180px";
+          img.style.height = "180px";
           img.style.objectFit = "contain";
-          img.style.margin = "20px";
-          img.style.opacity = "0.6"; 
+          img.style.margin = "30px";
+          img.style.opacity = "0.08"; 
           watermark.appendChild(img);
         }
       }
