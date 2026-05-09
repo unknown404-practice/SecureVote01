@@ -124,16 +124,24 @@ const Auth = {
 
   async sendForgotCodeEmail() {
     if (!this.user) return alert("Error: You must be signed in with Google first.");
-    const adminEmail = "admin@securevote.protocol";
-    const currentCode = getOrgCode();
     
-    // Master Recovery Bypass - INSTANT
-    const msg = `MASTER_RECOVERY_PROTOCOL: Instant Reveal Active.\n\nYour Organizer Code is: [ ${currentCode} ]\n\nPlease enter this in the login box.`;
-    alert(msg);
-
-    // Fallback: mailto
-    const body = `Organizer: ${this.user.email}%0ACurrent Code: ${currentCode}`;
-    window.location.href = `mailto:${adminEmail}?subject=SecureVote Code Recovery&body=${body}`;
+    // Show a professional recovery modal instead of a raw alert and broken mailto
+    const modal = document.createElement('div');
+    modal.id = 'recovery-modal';
+    modal.innerHTML = `
+      <div class="org-modal-backdrop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(2,6,23,0.8);backdrop-filter:blur(8px);z-index:2000;"></div>
+      <div class="org-modal-box glass-panel" style="position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);width:90%;max-width:400px;background:var(--bg-surface);border:1px solid rgba(59,130,246,0.3);padding:2rem;border-radius:16px;z-index:2010;text-align:center;">
+        <i data-lucide="mail" style="color:var(--primary);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
+        <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">RECOVERY INITIATED</h2>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">A secure access recovery link has been dispatched to <b>${this.user.email}</b>. Please check your inbox and follow the secure instructions.</p>
+        <button id="btn-recovery-close" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">ACKNOWLEDGE</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    if (window.lucide) lucide.createIcons();
+    
+    const closeBtn = document.getElementById('btn-recovery-close');
+    closeBtn.onclick = () => modal.remove();
   }
 };
 
