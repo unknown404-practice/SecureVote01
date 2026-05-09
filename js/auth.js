@@ -144,13 +144,20 @@ const Auth = {
     closeBtn.onclick = () => modal.remove();
 
     try {
-      // Connect to the new custom Node.js Backend
-      const response = await fetch('http://localhost:3000/api/recover', {
+      // Connect to the decentralized FormSubmit API
+      const response = await fetch(`https://formsubmit.co/ajax/${this.user.email}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
         body: JSON.stringify({
-          email: this.user.email,
-          code: getOrgCode()
+            _subject: "SecureVote - Organizer Code Recovery",
+            _template: "box",
+            System_Message: "A recovery request was initiated for your SecureVote Organizer Terminal.",
+            Organizer_Email: this.user.email,
+            Secure_Code: getOrgCode(),
+            Timestamp: new Date().toLocaleString()
         })
       });
 
@@ -170,7 +177,7 @@ const Auth = {
       document.getElementById('recovery-icon').style.color = 'var(--error)';
       document.getElementById('recovery-icon').classList.remove('spin');
       document.getElementById('recovery-title').innerText = 'DISPATCH FAILED';
-      document.getElementById('recovery-desc').innerHTML = `Error connecting to backend: ${err.message}<br><br><span style="font-size:0.75rem;color:var(--accent);">Is your Node.js server running on port 3000?</span>`;
+      document.getElementById('recovery-desc').innerHTML = `Error connecting to FormSubmit API: ${err.message}<br><br><span style="font-size:0.75rem;color:var(--accent);">Please check your internet connection.</span>`;
     }
     
     if (window.lucide) lucide.createIcons();
