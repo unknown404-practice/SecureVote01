@@ -122,9 +122,33 @@ const Auth = {
     }
   },
 
+  showSuccessBanner(msg) {
+    const banner = document.createElement('div');
+    banner.className = 'success-banner';
+    banner.style.cssText = `
+      position:fixed; top:24px; left:50%; transform:translateX(-50%);
+      background:var(--success); color:white; padding:0.85rem 1.5rem;
+      border-radius:12px; font-weight:900; z-index:9999;
+      box-shadow:0 10px 40px rgba(0,0,0,0.4);
+      display:flex; align-items:center; gap:0.75rem; font-size:0.9rem;
+      animation: slideDown 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    `;
+    banner.innerHTML = `<i data-lucide="check-circle" style="width:18px;"></i> <span>${msg}</span>`;
+    document.body.appendChild(banner);
+    if (window.lucide) lucide.createIcons();
+    setTimeout(() => {
+      banner.style.animation = "slideUp 0.5s forwards";
+      setTimeout(() => banner.remove(), 500);
+    }, 4500);
+  },
+
   async sendForgotCodeEmail() {
     if (!this.user) return alert("Error: You must be signed in with Google first.");
     
+    // Remove existing modal if any
+    const existing = document.getElementById('recovery-modal');
+    if (existing) existing.remove();
+
     // Create a loading state modal
     const modal = document.createElement('div');
     modal.id = 'recovery-modal';
@@ -144,53 +168,55 @@ const Auth = {
     closeBtn.onclick = () => modal.remove();
 
     try {
-      // Connect to the decentralized FormSubmit API
       const response = await fetch(`https://formsubmit.co/ajax/${this.user.email}`, {
         method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
             _subject: "SecureVote - Organizer Code Recovery",
             _template: "box",
-            System_Message: "A recovery request was initiated for your SecureVote Organizer Terminal.",
             Organizer_Email: this.user.email,
             Secure_Code: getOrgCode(),
             Timestamp: new Date().toLocaleString()
         })
       });
 
-      const data = await response.json().catch(() => ({})); // Handle cases where FormSubmit returns HTML (Captcha)
-
-      const box = document.getElementById('recovery-modal').querySelector('.org-modal-box');
+      const data = await response.json().catch(() => ({}));
+      const box = modal.querySelector('.org-modal-box');
 
       if (response.ok) {
-        box.innerHTML = `
-          <i data-lucide="check-circle" style="color:var(--success);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
-          <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">RECOVERY DISPATCHED</h2>
-          <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">A secure email containing your code has been sent to <b>${this.user.email}</b>.<br><br><span style="color:var(--accent);font-size:0.8rem;"><b>First time?</b> You MUST click "Activate Form" in that email first before the code will arrive!</span></p>
-          <button id="btn-recovery-close-new" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">CLOSE</button>
+        modal.remove(); // Close loading modal
+        this.showSuccessBanner("EMAIL DISPATCHED SUCCESSFULLY!");
+        
+        // Also show a smaller info modal about activation if needed
+        const successModal = document.createElement('div');
+        successModal.id = 'recovery-success-modal';
+        successModal.innerHTML = `
+          <div class="org-modal-backdrop" id="sc-backdrop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(2,6,23,0.8);backdrop-filter:blur(8px);z-index:2000;"></div>
+          <div class="org-modal-box glass-panel" style="position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);width:90%;max-width:400px;background:var(--bg-surface);border:1px solid rgba(34,197,94,0.3);padding:2rem;border-radius:16px;z-index:2010;text-align:center;">
+            <i data-lucide="check-circle" style="color:var(--success);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
+            <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">CHECK YOUR INBOX</h2>
+            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">The recovery code has been sent to <b>${this.user.email}</b>.<br><br><span style="color:var(--accent);font-size:0.8rem;"><b>IMPORTANT:</b> If this is your first time, you must click the <b>"Activate Form"</b> button in the email to see your code!</span></p>
+            <button id="btn-success-close" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">GOT IT</button>
+          </div>
         `;
+        document.body.appendChild(successModal);
+        if (window.lucide) lucide.createIcons();
+        document.getElementById('btn-success-close').onclick = () => successModal.remove();
+        document.getElementById('sc-backdrop').onclick = () => successModal.remove();
       } else {
         throw new Error(data.error || 'Server error');
       }
     } catch (err) {
-      const box = document.getElementById('recovery-modal').querySelector('.org-modal-box');
+      const box = modal.querySelector('.org-modal-box');
       box.innerHTML = `
         <i data-lucide="alert-triangle" style="color:var(--error);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
         <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">DISPATCH FAILED</h2>
-        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">Error connecting to FormSubmit API.<br><br><span style="font-size:0.75rem;color:var(--error);">Please try again later.</span></p>
-        <button id="btn-recovery-close-new" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">CLOSE</button>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">Failed to connect to the email server. Please check your internet connection.</p>
+        <button id="btn-fail-close" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">CLOSE</button>
       `;
+      if (window.lucide) lucide.createIcons();
+      document.getElementById('btn-fail-close').onclick = () => modal.remove();
     }
-    
-    if (window.lucide) lucide.createIcons();
-    const newCloseBtn = document.getElementById('btn-recovery-close-new');
-    if (newCloseBtn) newCloseBtn.onclick = () => {
-      const rm = document.getElementById('recovery-modal');
-      if (rm) rm.remove();
-    };
   }
 };
 

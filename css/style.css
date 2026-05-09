@@ -3,6 +3,15 @@
    Mobile-first: 320px → 4K
    ============================================================ */
 
+@keyframes slideDown {
+  from { transform: translate(-50%, -100px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translate(-50%, 0); opacity: 1; }
+  to { transform: translate(-50%, -100px); opacity: 0; }
+}
+
 :root {
   --bg-dark: #0f172a;
   --bg-surface: #1e293b;
