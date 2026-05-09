@@ -444,8 +444,8 @@
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:1rem; overflow:hidden; flex:1;">
         <button onclick="if(typeof Voter!=='undefined') Voter.handleBackNav();" class="btn btn-secondary btn-sm" title="Back" style="padding:0.7rem; border-radius:50%; width:42px; height:42px; flex-shrink:0;"><i data-lucide="arrow-left"></i></button>
-        <div class="logo" style="font-weight:800; font-size:clamp(0.9rem,3vw,1.5rem); display:flex; align-items:center; gap:0.5rem; white-space:nowrap;">
-          <i data-lucide="vote" class="text-accent" style="flex-shrink:0;"></i> OFFICIAL BALLOT BOOTH
+        <div class="logo" style="font-weight:800; font-size:clamp(0.9rem,3vw,1.5rem); display:flex; align-items:center; gap:0.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+          <i data-lucide="vote" class="text-accent" style="flex-shrink:0;"></i> <span style="overflow:hidden; text-overflow:ellipsis;">OFFICIAL BALLOT BOOTH</span>
         </div>
       </div>
       <div id="display-voter-id" style="font-size:0.7rem; color:var(--primary); font-weight:900; letter-spacing:1px; flex-shrink:0;"></div>
@@ -609,7 +609,7 @@
             </div>
 
             <!-- Voter ID badge -->
-            <div class="glass-panel" style="padding:1rem !important; text-align:center;">
+            <div class="glass-panel booth-voter-card" style="padding:1rem !important; text-align:center;">
               <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:2px; text-transform:uppercase; margin-bottom:0.4rem;">YOUR VOTER ID</div>
               <div id="dash-voter-id" style="font-weight:900; font-size:0.95rem; color:white; font-family:monospace; letter-spacing:1px;">---</div>
             </div>

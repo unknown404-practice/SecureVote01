@@ -463,10 +463,10 @@ const Voter = {
         <h2 style="font-size:1.4rem;font-weight:900;color:white;margin-bottom:0.75rem;line-height:1.3;">Please Don't Leave Without Voting!</h2>
         <p style="color:#cbd5e1;font-size:0.9rem;line-height:1.6;margin-bottom:1.75rem;">
           Your vote matters. You have not cast your ballot yet.<br>
-          <strong style="color:#f59e0b;">Every vote counts</strong> â€” the election outcome depends on your participation.
+          <strong style="color:#f59e0b;">Every vote counts</strong> — the election outcome depends on your participation.
         </p>
         <button id="exit-guard-stay" style="width:100%;padding:1rem;border:none;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-weight:900;font-size:1rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:0.75rem;">
-          âœ“ Stay & Cast My Vote
+          ✓ Stay & Cast My Vote
         </button>
         <button id="exit-guard-leave" style="width:100%;padding:0.75rem;border:1px solid #475569;border-radius:12px;background:transparent;color:#64748b;font-weight:700;font-size:0.8rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
           Exit Without Voting
@@ -542,7 +542,7 @@ const Voter = {
     let pollBadge, pollColor;
     if (now < startTime) { pollBadge = 'NOT STARTED'; pollColor = 'var(--accent)'; }
     else if (now > endTime) { pollBadge = 'CLOSED'; pollColor = 'var(--error)'; }
-    else { pollBadge = 'ðŸŸ¢ LIVE'; pollColor = 'var(--success)'; }
+    else { pollBadge = '🟢 LIVE'; pollColor = 'var(--success)'; }
 
     const row = (icon, label, value) => `
       <div class="glass-panel" style="padding:1rem !important; display:flex; gap:0.75rem; align-items:center;">
@@ -573,7 +573,7 @@ const Voter = {
       </div>
 
       ${row('info', 'ELECTION PURPOSE', el.reason || 'Official Ballot Process')}
-      ${row('clock', 'POLL SCHEDULE', `${el.start} â€“ ${el.end} (Local Time)`)}
+      ${row('clock', 'POLL SCHEDULE', `${el.start} – ${el.end} (Local Time)`)}
       ${row('calendar', 'SCHEDULED DATE', el.date)}
       ${row('map-pin', 'VERIFIED LOCATION', `${el.location.address}, ${el.location.city}`)}
       
@@ -603,7 +603,7 @@ const Voter = {
     if (teams.length === 0) {
       container.innerHTML = `
         <div style="text-align:center; padding:4rem 2rem; color:var(--text-secondary);">
-          <div style="font-size:3rem; margin-bottom:1rem;">Ã°Å¸â€”Â³Ã¯Â¸Â</div>
+          <div style="font-size:3rem; margin-bottom:1rem;">🗳️ </div>
           <p style="font-weight:700; letter-spacing:1px;">NO CANDIDATES REGISTERED YET</p>
           <p style="font-size:0.85rem; margin-top:0.5rem;">The organizer has not added any participants to this election.</p>
         </div>`;
@@ -655,7 +655,7 @@ const Voter = {
         "
         onmouseover="this.style.background='${color}'; this.style.color='#0f172a';"
         onmouseout="this.style.background='linear-gradient(135deg, ${color}22, ${color}44)'; this.style.color='${color}';"
-        >âœ“ VOTE</button>
+        >✓ VOTE</button>
       `;
       container.appendChild(item);
     });
@@ -668,7 +668,7 @@ const Voter = {
     });
   },
 
-  // Show smooth inline vote confirmation modal Ã¢â‚¬â€ no browser dialogs
+  // Show smooth inline vote confirmation modal — no browser dialogs
   showVoteModal(teamNumeric) {
     const teams = DB.getTeams();
     const team = teams.find(t => String(t.numeric) === String(teamNumeric));
@@ -721,7 +721,7 @@ const Voter = {
         <div style="font-size:0.8rem; font-weight:800; color:${color}; letter-spacing:2px; text-transform:uppercase; margin-bottom:1.5rem;">BALLOT ID: #${team.numeric}</div>
 
         <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.6; margin-bottom:2rem; background:rgba(255,255,255,0.03); border-radius:12px; padding:1rem;">
-          ⚠️ This action is <strong style="color:white;">irreversible</strong>. Once submitted, your vote is cryptographically sealed and cannot be changed.
+          ⚠️ This action is <strong style="color:white;">irreversible</strong>. Once submitted, your vote cannot be modified. It is cryptographically sealed and cannot be changed.
         </p>
 
         <div style="display:flex; gap:1rem; justify-content:center;">
@@ -750,7 +750,7 @@ const Voter = {
     document.getElementById('btn-vote-cancel').onclick = () => modal.remove();
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
-    // Confirm Ã¢â€ â€™ cast vote
+    // Confirm & cast vote
     document.getElementById('btn-vote-confirm').onclick = async () => {
       const confirmBtn = document.getElementById('btn-vote-confirm');
       confirmBtn.disabled = true;
@@ -807,7 +807,7 @@ const Voter = {
 
       <!-- The 4:3 Banner -->
       <div id="sv-banner" style="
-        /* 4:3 ratio â€” width drives height */
+        /* 4:3 ratio — width drives height */
         width: min(72vw, 420px);
         aspect-ratio: 4 / 3;
 
@@ -846,7 +846,7 @@ const Voter = {
         <!-- Badge -->
         <div style="font-size:0.55rem;font-weight:900;letter-spacing:4px;
           text-transform:uppercase;color:rgba(34,197,94,0.75);">
-          🛡️ VOTE CERTIFIED
+          ✅ VOTE CERTIFIED
         </div>
 
         <!-- Heading -->
@@ -884,7 +884,7 @@ const Voter = {
 
         <!-- Footer -->
         <p style="font-size:0.6rem;color:rgba(255,255,255,0.2);letter-spacing:0.5px;margin:0;">
-          SecureVote · Session Terminated
+          SecureVote | Session Terminated
         </p>
       </div>
     `;
