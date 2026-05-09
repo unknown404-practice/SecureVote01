@@ -187,6 +187,7 @@ const App = {
     });
 
     safeBind('btn-logout', 'click', () => Auth.logout());
+    safeBind('btn-contact-admin', 'click', () => this.showContactModal());
     safeBind('btn-exit-results', 'click', () => {
       Auth.currentPortal = null;
       if(Auth.user) this.navigateTo('role-screen');
@@ -214,6 +215,71 @@ const App = {
     setTimeout(() => {
       alert(`A secure reset link has been dispatched to ${email}. Please verify your identity via the incoming digital dispatch.`);
     }, 1500);
+  },
+
+  showContactModal() {
+    const modal = document.createElement('div');
+    modal.id = 'contact-modal';
+    modal.innerHTML = `
+      <div class="org-modal-backdrop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(2,6,23,0.8);backdrop-filter:blur(8px);z-index:3000;"></div>
+      <div class="org-modal-box glass-panel" style="position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);width:95%;max-width:450px;background:var(--bg-surface);border:1px solid rgba(59,130,246,0.3);padding:2rem;border-radius:20px;z-index:3010;text-align:center;">
+        <div style="width:50px;height:50px;background:rgba(59,130,246,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;border:1px solid var(--primary);">
+          <i data-lucide="help-circle" style="color:var(--primary);width:24px;height:24px;"></i>
+        </div>
+        <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.3rem;letter-spacing:1px;text-transform:uppercase;">SUPPORT REQUEST</h2>
+        <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1.5rem;">Have an issue? Send a direct message to the SecureVote Admin team.</p>
+        
+        <form id="contact-form">
+          <div style="margin-bottom:1rem; text-align:left;">
+            <label style="color:white; font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-bottom:0.5rem; display:block;">Your Message</label>
+            <textarea id="contact-message" required placeholder="Describe your issue or suggestion..." style="width:100%; height:120px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:white; padding:1rem; font-family:inherit; font-size:0.9rem; resize:none; outline:none;"></textarea>
+          </div>
+          <button type="submit" id="btn-submit-contact" class="btn btn-primary w-100" style="padding:1rem; font-weight:900; letter-spacing:1px;">DISPATCH MESSAGE</button>
+        </form>
+        <button id="btn-contact-close" class="btn btn-secondary w-100" style="margin-top:0.75rem; padding:1rem;">CANCEL</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    if (window.lucide) lucide.createIcons();
+
+    const close = () => modal.remove();
+    document.getElementById('btn-contact-close').onclick = close;
+
+    document.getElementById('contact-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const message = document.getElementById('contact-message').value;
+      const btn = document.getElementById('btn-submit-contact');
+      const userEmail = Auth.user?.email || "Anonymous";
+
+      btn.disabled = true;
+      btn.innerText = "SENDING...";
+
+      try {
+        await fetch(`https://formsubmit.co/ajax/ranadeep2021saha@gmail.com`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            _subject: "SecureVote - Support Request",
+            User: userEmail,
+            Message: message,
+            Platform: "SecureVote Global Terminal"
+          })
+        });
+        
+        modal.querySelector('.org-modal-box').innerHTML = `
+          <i data-lucide="check-circle" style="color:var(--success);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
+          <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">MESSAGE DISPATCHED</h2>
+          <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">Your support request has been securely delivered to the admin team. We will review it shortly.</p>
+          <button id="btn-success-close" class="btn btn-primary w-100" style="padding:1rem; font-weight:900;">CLOSE</button>
+        `;
+        if (window.lucide) lucide.createIcons();
+        document.getElementById('btn-success-close').onclick = close;
+      } catch (err) {
+        alert("System error: Failed to dispatch message.");
+        btn.disabled = false;
+        btn.innerText = "DISPATCH MESSAGE";
+      }
+    };
   }
 };
 
