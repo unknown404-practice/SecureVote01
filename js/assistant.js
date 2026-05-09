@@ -17,19 +17,25 @@ const Assistant = {
     this.inputField = document.getElementById('ai-input');
 
     if (this.form) {
-      this.form.onsubmit = (e) => {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-        try {
+      // Manual listener for Send button
+      const sendBtn = document.getElementById('btn-ai-send');
+      if (sendBtn) {
+        sendBtn.onclick = () => {
           const q = (this.inputField.value || '').trim();
           if (q) this.handleQuery(q);
-        } catch (err) {
-          console.error("Assistant Error:", err);
-        }
-        return false;
-      };
+        };
+      }
+
+      // Manual listener for Enter key on Input
+      if (this.inputField) {
+        this.inputField.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const q = (this.inputField.value || '').trim();
+            if (q) this.handleQuery(q);
+          }
+        };
+      }
     }
 
     this.wipeChat();
