@@ -145,9 +145,12 @@ const Auth = {
   async sendForgotCodeEmail() {
     if (!this.user) return alert("Error: You must be signed in with Google first.");
     
-    // Remove existing modal if any
-    const existing = document.getElementById('recovery-modal');
-    if (existing) existing.remove();
+    // Remove existing modals to prevent overlap
+    const orgModal = document.getElementById('org-code-modal');
+    if (orgModal) orgModal.remove();
+    
+    const existingRec = document.getElementById('recovery-modal');
+    if (existingRec) existingRec.remove();
 
     // Create a loading state modal
     const modal = document.createElement('div');
