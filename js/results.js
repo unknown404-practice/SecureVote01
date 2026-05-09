@@ -81,18 +81,21 @@ const Results = {
         const v = votes[t.numeric] || 0;
         const pct = totalVotes === 0 ? 0 : Math.round((v / totalVotes) * 100);
         return `
-          <div class="glass-panel p-1" style="display:flex; align-items:center; gap:1.5rem; margin-bottom:0.5rem; ${i===0 && v>0 ? 'border-left:4px solid var(--success);' : ''}">
-            <img src="${t.logo}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:white; padding:2px; border:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:1.25rem; padding:1.25rem 0.75rem; border-bottom:1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+            <div style="position:relative;">
+              <img src="${t.logo}" style="width:44px; height:44px; border-radius:50%; object-fit:cover; background:white; border:2px solid ${i===0 && v>0 ? 'var(--success)' : 'rgba(255,255,255,0.1)'};">
+              ${i === 0 && v > 0 ? '<div style="position:absolute; bottom:-2px; right:-2px; background:var(--success); color:#0f172a; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; border:2px solid #0f172a;">★</div>' : ''}
+            </div>
             <div style="flex:1;">
-              <h3 style="margin-bottom:0.25rem; font-size:1rem;">${t.name} <span style="font-size:0.8rem; color:var(--text-secondary);">#${t.numeric}</span></h3>
-              <div style="width:100%; background:var(--bg-dark); height:6px; border-radius:3px; overflow:hidden;">
-                <div style="width:${pct}%; height:100%; background:var(--primary);"></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                <h3 style="font-size:0.95rem; font-weight:800; color:#f8fafc; letter-spacing:0.5px;">${t.name}</h3>
+                <div style="font-size:0.95rem; font-weight:900; color:var(--primary);">${v} <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:700;">VOTES</span></div>
+              </div>
+              <div style="width:100%; background:rgba(255,255,255,0.05); height:4px; border-radius:2px; overflow:hidden;">
+                <div style="width:${pct}%; height:100%; background:var(--primary); box-shadow: 0 0 10px var(--primary);"></div>
               </div>
             </div>
-            <div style="text-align:right;">
-              <div style="font-size:1.2rem; font-weight:bold; color:var(--primary);">${v}</div>
-              <div style="font-size:0.8rem; color:var(--text-secondary);">${pct}%</div>
-            </div>
+            <div style="font-size:0.9rem; font-weight:900; color:var(--text-secondary); min-width:40px; text-align:right;">${pct}%</div>
           </div>
         `;
       }).join('');
@@ -149,16 +152,17 @@ const Results = {
         const centerY = height / 2;
 
         // Big percentage
-        c.font = `900 ${Math.round(height / 6)}px Inter, sans-serif`;
-        c.fillStyle = '#f8fafc';
+        c.font = `900 ${Math.round(height / 8)}px Inter, sans-serif`;
+        c.fillStyle = '#fff';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText(`${winnerPct}%`, centerX, centerY - height * 0.05);
+        c.fillText(`${winnerPct}%`, centerX, centerY - height * 0.04);
 
         // Small label
-        c.font = `700 ${Math.round(height / 14)}px Inter, sans-serif`;
-        c.fillStyle = '#fbbf24';
-        c.fillText(winnerName.length > 12 ? winnerName.substring(0, 12) + '…' : winnerName, centerX, centerY + height * 0.13);
+        c.font = `800 ${Math.round(height / 18)}px Inter, sans-serif`;
+        c.fillStyle = 'rgba(255,255,255,0.4)';
+        c.letterSpacing = '1px';
+        c.fillText(winnerName.toUpperCase(), centerX, centerY + height * 0.1);
 
         c.restore();
       }
