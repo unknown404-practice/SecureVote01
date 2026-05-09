@@ -16,28 +16,6 @@ const Assistant = {
     this.form = document.getElementById('form-ai');
     this.inputField = document.getElementById('ai-input');
 
-    if (this.form) {
-      // Manual listener for Send button
-      const sendBtn = document.getElementById('btn-ai-send');
-      if (sendBtn) {
-        sendBtn.onclick = () => {
-          const q = (this.inputField.value || '').trim();
-          if (q) this.handleQuery(q);
-        };
-      }
-
-      // Manual listener for Enter key on Input
-      if (this.inputField) {
-        this.inputField.onkeydown = (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            const q = (this.inputField.value || '').trim();
-            if (q) this.handleQuery(q);
-          }
-        };
-      }
-    }
-
     this.wipeChat();
     this.initialized = true;
   },
