@@ -161,28 +161,36 @@ const Auth = {
         })
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({})); // Handle cases where FormSubmit returns HTML (Captcha)
+
+      const box = document.getElementById('recovery-modal').querySelector('.org-modal-box');
 
       if (response.ok) {
-        document.getElementById('recovery-icon').setAttribute('data-lucide', 'check-circle');
-        document.getElementById('recovery-icon').style.color = 'var(--success)';
-        document.getElementById('recovery-icon').classList.remove('spin');
-        document.getElementById('recovery-title').innerText = 'RECOVERY DISPATCHED';
-        document.getElementById('recovery-desc').innerHTML = `A secure email containing your code has been sent to <b>${this.user.email}</b>.`;
+        box.innerHTML = `
+          <i data-lucide="check-circle" style="color:var(--success);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
+          <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">RECOVERY DISPATCHED</h2>
+          <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">A secure email containing your code has been sent to <b>${this.user.email}</b>.<br><br><span style="color:var(--accent);font-size:0.8rem;"><b>First time?</b> You MUST click "Activate Form" in that email first before the code will arrive!</span></p>
+          <button id="btn-recovery-close-new" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">CLOSE</button>
+        `;
       } else {
         throw new Error(data.error || 'Server error');
       }
     } catch (err) {
-      document.getElementById('recovery-icon').setAttribute('data-lucide', 'alert-triangle');
-      document.getElementById('recovery-icon').style.color = 'var(--error)';
-      document.getElementById('recovery-icon').classList.remove('spin');
-      document.getElementById('recovery-title').innerText = 'DISPATCH FAILED';
-      document.getElementById('recovery-desc').innerHTML = `Error connecting to FormSubmit API: ${err.message}<br><br><span style="font-size:0.75rem;color:var(--accent);">Please check your internet connection.</span>`;
+      const box = document.getElementById('recovery-modal').querySelector('.org-modal-box');
+      box.innerHTML = `
+        <i data-lucide="alert-triangle" style="color:var(--error);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
+        <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">DISPATCH FAILED</h2>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">Error connecting to FormSubmit API.<br><br><span style="font-size:0.75rem;color:var(--error);">Please try again later.</span></p>
+        <button id="btn-recovery-close-new" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">CLOSE</button>
+      `;
     }
     
     if (window.lucide) lucide.createIcons();
-    closeBtn.style.display = 'block';
-    closeBtn.className = 'btn btn-primary';
+    const newCloseBtn = document.getElementById('btn-recovery-close-new');
+    if (newCloseBtn) newCloseBtn.onclick = () => {
+      const rm = document.getElementById('recovery-modal');
+      if (rm) rm.remove();
+    };
   }
 };
 
