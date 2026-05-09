@@ -264,10 +264,8 @@ const DB = {
       const startTime = new Date(`${eData.date}T${eData.start}`);
       const endTime = new Date(`${eData.date}T${eData.end}`);
 
-      if (!isDemoBypass) {
-        if (now < startTime) return { valid: false, reason: `Voting protocol has not commenced. Scheduled to open at ${eData.start}.` };
-        if (now > endTime) return { valid: false, reason: `Voting protocol has concluded. Scheduled window closed at ${eData.end}.` };
-      }
+      if (now < startTime) return { valid: false, reason: `Voting protocol has not commenced. Scheduled to open at ${eData.start}.` };
+      if (now > endTime) return { valid: false, reason: `Voting protocol has concluded. Scheduled window closed at ${eData.end}.` };
 
       return { valid: true, electionData: eData, cloudData: el };
     } catch (e) {
