@@ -650,7 +650,7 @@ label[for="qr-upload"]:hover { background: var(--primary-soft) !important; borde
 
 @media (max-width: 1024px) {
   .voter-bottom-nav { display: flex; }
-  .voter-screen { padding-bottom: 64px; }
+  .voter-main { padding-bottom: calc(64px + 2rem) !important; }
 }
 
 .bottom-nav-item {
@@ -672,7 +672,7 @@ label[for="qr-upload"]:hover { background: var(--primary-soft) !important; borde
   .booth-info-card, .booth-integrity-card { flex: 1 1 calc(50% - 0.5rem); min-width: 0; }
   .booth-voter-card { flex: 1 1 100%; }
   .ballot-grid { grid-template-columns: 1fr; gap: 0.75rem; }
-  .voter-main { padding: 0.75rem !important; }
+  .voter-main { padding: 0.75rem 0.75rem calc(64px + 1.5rem) 0.75rem !important; }
   .window-header h2 { font-size: 0.85rem !important; }
   .guideline-grid { grid-template-columns: 1fr !important; }
 }
