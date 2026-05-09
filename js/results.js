@@ -81,21 +81,18 @@ const Results = {
         const v = votes[t.numeric] || 0;
         const pct = totalVotes === 0 ? 0 : Math.round((v / totalVotes) * 100);
         return `
-          <div style="display:flex; align-items:center; gap:1.25rem; padding:1.25rem 0.75rem; border-bottom:1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
-            <div style="position:relative;">
-              <img src="${t.logo}" style="width:44px; height:44px; border-radius:50%; object-fit:cover; background:white; border:2px solid ${i===0 && v>0 ? 'var(--success)' : 'rgba(255,255,255,0.1)'};">
-              ${i === 0 && v > 0 ? '<div style="position:absolute; bottom:-2px; right:-2px; background:var(--success); color:#0f172a; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; border:2px solid #0f172a;">★</div>' : ''}
-            </div>
+          <div class="glass-panel p-1" style="display:flex; align-items:center; gap:1.5rem; margin-bottom:0.5rem; ${i===0 && v>0 ? 'border-left:4px solid var(--success);' : ''}">
+            <img src="${t.logo}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:white; padding:2px; border:1px solid var(--border);">
             <div style="flex:1;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                <h3 style="font-size:0.95rem; font-weight:800; color:#f8fafc; letter-spacing:0.5px;">${t.name}</h3>
-                <div style="font-size:0.95rem; font-weight:900; color:var(--primary);">${v} <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:700;">VOTES</span></div>
-              </div>
-              <div style="width:100%; background:rgba(255,255,255,0.05); height:4px; border-radius:2px; overflow:hidden;">
-                <div style="width:${pct}%; height:100%; background:var(--primary); box-shadow: 0 0 10px var(--primary);"></div>
+              <h3 style="margin-bottom:0.25rem; font-size:1rem;">${t.name} <span style="font-size:0.8rem; color:var(--text-secondary);">#${t.numeric}</span></h3>
+              <div style="width:100%; background:var(--bg-dark); height:6px; border-radius:3px; overflow:hidden;">
+                <div style="width:${pct}%; height:100%; background:var(--primary);"></div>
               </div>
             </div>
-            <div style="font-size:0.9rem; font-weight:900; color:var(--text-secondary); min-width:40px; text-align:right;">${pct}%</div>
+            <div style="text-align:right;">
+              <div style="font-size:1.2rem; font-weight:bold; color:var(--primary);">${v}</div>
+              <div style="font-size:0.8rem; color:var(--text-secondary);">${pct}%</div>
+            </div>
           </div>
         `;
       }).join('');
@@ -152,17 +149,16 @@ const Results = {
         const centerY = height / 2;
 
         // Big percentage
-        c.font = `900 ${Math.round(height / 8)}px Inter, sans-serif`;
-        c.fillStyle = '#fff';
+        c.font = `900 ${Math.round(height / 6)}px Inter, sans-serif`;
+        c.fillStyle = '#f8fafc';
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText(`${winnerPct}%`, centerX, centerY - height * 0.04);
+        c.fillText(`${winnerPct}%`, centerX, centerY - height * 0.05);
 
         // Small label
-        c.font = `800 ${Math.round(height / 18)}px Inter, sans-serif`;
-        c.fillStyle = 'rgba(255,255,255,0.4)';
-        c.letterSpacing = '1px';
-        c.fillText(winnerName.toUpperCase(), centerX, centerY + height * 0.1);
+        c.font = `700 ${Math.round(height / 14)}px Inter, sans-serif`;
+        c.fillStyle = '#fbbf24';
+        c.fillText(winnerName.length > 12 ? winnerName.substring(0, 12) + '…' : winnerName, centerX, centerY + height * 0.13);
 
         c.restore();
       }
@@ -309,63 +305,41 @@ const Results = {
       const appLogo = document.getElementById('notice-app-logo');
       if (appLogo) appLogo.src = el.logo || 'app_icon.png';
 
-      const winLogo = document.getElementById('notice-winner-logo');
-      if (winLogo) {
-        let winLogoSrc = (v > 0 && winner.logo) ? winner.logo : 'app_icon.png';
-        if (winLogoSrc.startsWith('http')) {
-          try { winLogoSrc = await DB.urlToBase64(winLogoSrc); } catch(e) { winLogoSrc = 'app_icon.png'; }
-        }
-        winLogo.src = winLogoSrc;
-      }
-
       document.getElementById('notice-winner-name').innerText = (v > 0 && !isDraft) ? winner.name : (isDraft ? "PENDING OFFICIAL COUNT" : "PROTOCOL CONCLUDED");
       document.getElementById('notice-timestamp').innerText = isDraft ? `DRAFT GENERATED ON: ${new Date().toLocaleString()}` : `CERTIFIED ON: ${new Date().toLocaleString()}`;
 
       // Breakdown in JPG
       const breakdown = document.getElementById('notice-breakdown-container');
-      
-      // SERIALIZATION: Map teams and ensure logos are ready for canvas
-      const breakdownHtml = await Promise.all(teams.slice(0, 10).map(async t => {
+      breakdown.innerHTML = teams.slice(0, 10).map(t => {
         const v = votes[t.numeric] || 0;
-        let logoSrc = (t.logo && t.logo.length > 5) ? t.logo : 'app_icon.png';
-        
-        // Base64 conversion for external URLs to avoid canvas tainting
-        if (logoSrc.startsWith('http')) {
-          try { logoSrc = await DB.urlToBase64(logoSrc); } catch(e) { logoSrc = 'app_icon.png'; }
-        }
-
+        const logoSrc = (t.logo && t.logo.length > 5) ? t.logo : 'app_icon.png';
         return `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px 25px; border-radius:15px; border: 1px solid rgba(255,255,255,0.1);">
             <div style="display:flex; align-items:center; gap:15px;">
-              <div style="width:55px; height:55px; background:white; border: 2px solid rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                <img src="${logoSrc}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='app_icon.png'">
+              <div style="width:55px; height:55px; background:rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                <img src="${logoSrc}" style="width:100%; height:100%; object-fit:cover;">
               </div>
               <span style="font-size:1.4rem; font-weight:700; letter-spacing:1px;">${t.name}</span>
             </div>
             <span style="font-size:1.4rem; color:var(--accent); font-weight:900;">${v} <span style="font-size:0.9rem; opacity:0.7;">VOTES</span></span>
           </div>
         `;
-      }));
-      breakdown.innerHTML = breakdownHtml.join('');
+      }).join('');
 
       // Create Logo Watermark Grid
       const watermark = document.getElementById('notice-watermark');
       watermark.innerHTML = '';
       if (teams.length > 0) {
-        const watermarkLogo = (teams[0].logo && teams[0].logo.length > 10) ? teams[0].logo : 'app_icon.png';
-        let finalWatermark = watermarkLogo;
-        if (finalWatermark.startsWith('http')) {
-          try { finalWatermark = await DB.urlToBase64(finalWatermark); } catch(e) { finalWatermark = 'app_icon.png'; }
-        }
-
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 15; i++) {
+          const t = teams[i % teams.length];
+          const logoSrc = (t.logo && t.logo.length > 20) ? t.logo : 'https://via.placeholder.com/150?text=LOGO';
           const img = document.createElement('img');
-          img.src = finalWatermark;
-          img.style.width = "180px";
-          img.style.height = "180px";
+          img.src = logoSrc;
+          img.style.width = "150px";
+          img.style.height = "150px";
           img.style.objectFit = "contain";
-          img.style.margin = "30px";
-          img.style.opacity = "0.08"; 
+          img.style.margin = "20px";
+          img.style.opacity = "0.6"; 
           watermark.appendChild(img);
         }
       }

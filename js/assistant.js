@@ -16,6 +16,15 @@ const Assistant = {
     this.form = document.getElementById('form-ai');
     this.inputField = document.getElementById('ai-input');
 
+    if (this.form) {
+      this.form.onsubmit = (e) => {
+        if (e) e.preventDefault();
+        const q = (this.inputField.value || '').trim();
+        if (q) this.handleQuery(q);
+        return false;
+      };
+    }
+
     this.wipeChat();
     this.initialized = true;
   },
