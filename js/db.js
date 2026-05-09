@@ -239,39 +239,59 @@ const DB = {
   async verifyVoter(voterId, electionId) {
     if (!electionId) return { valid: false, reason: "SYSTEM_ERROR: No active protocol detected." };
     
+    let elData = null;
+    let votersMap = null;
+    let isCloud = false;
+
     try {
       const doc = await firebase.firestore().collection('elections').doc(electionId).get();
-      if (!doc.exists) return { valid: false, reason: "INVALID_PROTOCOL: This election ID does not exist in the official records." };
-      
-      const el = doc.data();
-      const voters = el.voters || {};
-      
-      if (!voters[voterId]) {
+      if (doc.exists) {
+        const el = doc.data();
+        elData = el.election;
+        votersMap = el.voters || {};
+        isCloud = true;
+      } else {
+        throw new Error("Election not found in cloud.");
+      }
+    } catch (e) {
+      console.warn("Cloud Verify Failed. Activating Local Fallback Protocol.", e);
+      if (this.getElectionId() === electionId) {
+        elData = this.getElection();
+        votersMap = this.getVoters();
+      } else {
+        return { valid: false, reason: "INVALID_PROTOCOL: This election ID does not exist in local records." };
+      }
+    }
+
+    if (!elData) return { valid: false, reason: "INVALID_PROTOCOL: No election data found." };
+
+    if (!votersMap[voterId]) {
+      if (isCloud) {
         const localVoters = this.getVoters();
         if (localVoters[voterId]) {
           console.log("EMERGENCY_SYNC: ID found locally. Injecting to cloud...");
-          voters[voterId] = localVoters[voterId];
-          await firebase.firestore().collection('elections').doc(electionId).update({ voters: voters });
+          votersMap[voterId] = localVoters[voterId];
+          try {
+            await firebase.firestore().collection('elections').doc(electionId).update({ voters: votersMap });
+          } catch(err) {}
         } else {
           return { valid: false, reason: "Invalid Official Voter ID or QR Code." };
         }
+      } else {
+        return { valid: false, reason: "Invalid Official Voter ID or QR Code." };
       }
-      
-      if (voters[voterId].voted) return { valid: false, reason: "VIOLATION: This Voter ID has already been utilized. Multi-voting is strictly prohibited." };
-      
-      const now = new Date();
-      const eData = el.election;
-      const startTime = new Date(`${eData.date}T${eData.start}`);
-      const endTime = new Date(`${eData.date}T${eData.end}`);
-
-      if (now < startTime) return { valid: false, reason: `Voting protocol has not commenced. Scheduled to open at ${eData.start}.` };
-      if (now > endTime) return { valid: false, reason: `Voting protocol has concluded. Scheduled window closed at ${eData.end}.` };
-
-      return { valid: true, electionData: eData, cloudData: el };
-    } catch (e) {
-      console.error("Voter Verify Error:", e);
-      return { valid: false, reason: "CONNECTION_ERROR: Could not reach the election database." };
     }
+
+    if (votersMap[voterId].voted) return { valid: false, reason: "VIOLATION: This Voter ID has already been utilized. Multi-voting is strictly prohibited." };
+
+    const now = new Date();
+    const startTime = new Date(`${elData.date}T${elData.start}`);
+    const endTime = new Date(`${elData.date}T${elData.end}`);
+
+    if (now < startTime) return { valid: false, reason: `Voting protocol has not commenced. Scheduled to open at ${elData.start}.` };
+    if (now > endTime) return { valid: false, reason: `Voting protocol has concluded. Scheduled window closed at ${elData.end}.` };
+
+    return { valid: true, electionData: elData, cloudData: isCloud ? { election: elData, voters: votersMap } : null };
   },
 
   async castVote(voterId, teamNumeric, electionId) {
@@ -304,8 +324,21 @@ const DB = {
 
       return { success: true };
     } catch (e) {
-      console.error("Vote Transaction Failed:", e);
-      return { success: false, reason: "DATABASE_BUSY: Transaction failed. Please try again." };
+      console.warn("Vote Transaction Failed on Cloud. Using Local Fallback:", e);
+      
+      const voters = this.getVoters();
+      if (!voters[voterId] || voters[voterId].voted) {
+        return { success: false, reason: "VIOLATION: This Voter ID has already been utilized." };
+      }
+      voters[voterId].voted = true;
+      voters[voterId].timestamp = new Date().toISOString();
+      localStorage.setItem(this.KEYS.VOTERS, JSON.stringify(voters));
+
+      const votes = this.getVotes();
+      votes[teamNumeric] = (votes[teamNumeric] || 0) + 1;
+      localStorage.setItem(this.KEYS.VOTES, JSON.stringify(votes));
+      
+      return { success: true };
     }
   }
 };
