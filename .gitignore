@@ -1,8 +1,6 @@
 # Sensitive Presentation Assets
 media/
 presentation.html
-app_icon.png
-official_logo.png
 
 # Video Files
 *.mp4
