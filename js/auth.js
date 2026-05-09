@@ -122,26 +122,6 @@ const Auth = {
     }
   },
 
-  showSuccessBanner(msg) {
-    const banner = document.createElement('div');
-    banner.className = 'success-banner';
-    banner.style.cssText = `
-      position:fixed; top:24px; left:50%; transform:translateX(-50%);
-      background:var(--success); color:white; padding:0.85rem 1.5rem;
-      border-radius:12px; font-weight:900; z-index:9999;
-      box-shadow:0 10px 40px rgba(0,0,0,0.4);
-      display:flex; align-items:center; gap:0.75rem; font-size:0.9rem;
-      animation: slideDown 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
-    `;
-    banner.innerHTML = `<i data-lucide="check-circle" style="width:18px;"></i> <span>${msg}</span>`;
-    document.body.appendChild(banner);
-    if (window.lucide) lucide.createIcons();
-    setTimeout(() => {
-      banner.style.animation = "slideUp 0.5s forwards";
-      setTimeout(() => banner.remove(), 500);
-    }, 4500);
-  },
-
   async sendForgotCodeEmail() {
     if (!this.user) return alert("Error: You must be signed in with Google first.");
     
