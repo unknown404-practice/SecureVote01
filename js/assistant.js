@@ -68,6 +68,8 @@ const Assistant = {
   },
 
   handleQuery(query) {
+    if (!this.initialized) this.ensureInit();
+    
     if (!query.trim()) return;
     this.addMessage('user', query);
     if (this.inputField) this.inputField.value = '';
