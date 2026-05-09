@@ -283,7 +283,7 @@ const Voter = {
         let origHtml = '';
         if (uploadLabel) {
           origHtml = uploadLabel.innerHTML;
-          uploadLabel.innerHTML = 'Ã¢ÂÂ³ SCANNING...';
+          uploadLabel.innerHTML = '⏳ SCANNING...';
         }
 
         try {
