@@ -125,16 +125,16 @@ const Auth = {
   async sendForgotCodeEmail() {
     if (!this.user) return alert("Error: You must be signed in with Google first.");
     
-    // Show a professional recovery modal instead of a raw alert and broken mailto
+    // Create a loading state modal
     const modal = document.createElement('div');
     modal.id = 'recovery-modal';
     modal.innerHTML = `
       <div class="org-modal-backdrop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(2,6,23,0.8);backdrop-filter:blur(8px);z-index:2000;"></div>
       <div class="org-modal-box glass-panel" style="position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);width:90%;max-width:400px;background:var(--bg-surface);border:1px solid rgba(59,130,246,0.3);padding:2rem;border-radius:16px;z-index:2010;text-align:center;">
-        <i data-lucide="mail" style="color:var(--primary);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
-        <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">RECOVERY INITIATED</h2>
-        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">A secure access recovery link has been dispatched to <b>${this.user.email}</b>. Please check your inbox and follow the secure instructions.</p>
-        <button id="btn-recovery-close" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">ACKNOWLEDGE</button>
+        <i id="recovery-icon" data-lucide="loader" class="spin" style="color:var(--primary);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
+        <h2 id="recovery-title" style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">DISPATCHING EMAIL...</h2>
+        <p id="recovery-desc" style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">Securely connecting to the backend server...</p>
+        <button id="btn-recovery-close" class="btn btn-secondary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;display:none;">CLOSE</button>
       </div>
     `;
     document.body.appendChild(modal);
@@ -142,6 +142,40 @@ const Auth = {
     
     const closeBtn = document.getElementById('btn-recovery-close');
     closeBtn.onclick = () => modal.remove();
+
+    try {
+      // Connect to the new custom Node.js Backend
+      const response = await fetch('http://localhost:3000/api/recover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: this.user.email,
+          code: getOrgCode()
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        document.getElementById('recovery-icon').setAttribute('data-lucide', 'check-circle');
+        document.getElementById('recovery-icon').style.color = 'var(--success)';
+        document.getElementById('recovery-icon').classList.remove('spin');
+        document.getElementById('recovery-title').innerText = 'RECOVERY DISPATCHED';
+        document.getElementById('recovery-desc').innerHTML = `A secure email containing your code has been sent to <b>${this.user.email}</b>.`;
+      } else {
+        throw new Error(data.error || 'Server error');
+      }
+    } catch (err) {
+      document.getElementById('recovery-icon').setAttribute('data-lucide', 'alert-triangle');
+      document.getElementById('recovery-icon').style.color = 'var(--error)';
+      document.getElementById('recovery-icon').classList.remove('spin');
+      document.getElementById('recovery-title').innerText = 'DISPATCH FAILED';
+      document.getElementById('recovery-desc').innerHTML = `Error connecting to backend: ${err.message}<br><br><span style="font-size:0.75rem;color:var(--accent);">Is your Node.js server running on port 3000?</span>`;
+    }
+    
+    if (window.lucide) lucide.createIcons();
+    closeBtn.style.display = 'block';
+    closeBtn.className = 'btn btn-primary';
   }
 };
 
