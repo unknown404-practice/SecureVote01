@@ -188,9 +188,8 @@ const Auth = {
 
       if (response.ok) {
         modal.remove(); // Close loading modal
-        this.showSuccessBanner("EMAIL DISPATCHED SUCCESSFULLY!");
         
-        // Also show a smaller info modal about activation if needed
+        // Show a single, clear success modal
         const successModal = document.createElement('div');
         successModal.id = 'recovery-success-modal';
         successModal.innerHTML = `
