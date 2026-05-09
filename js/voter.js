@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Voter Booth Logic Ã¢â‚¬â€ Bulletproof V3
  * SCAN   Ã¢â€ â€™ Html5Qrcode (camera)
  * UPLOAD Ã¢â€ â€™ jsQR via Canvas (completely independent, no camera needed)
@@ -353,6 +353,9 @@ const Voter = {
     this.renderDashboard(elData);
     this.switchTab('dashboard');
     App.navigateTo('voter-screen');
+    
+    // GUARANTEE form binding immediately so the page never reloads if the user chats from other tabs
+    if (typeof Assistant !== 'undefined') Assistant.ensureInit();
   },
 
   // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ DASHBOARD / SIDEBAR Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
