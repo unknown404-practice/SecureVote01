@@ -18,9 +18,16 @@ const Assistant = {
 
     if (this.form) {
       this.form.onsubmit = (e) => {
-        if (e) e.preventDefault();
-        const q = (this.inputField.value || '').trim();
-        if (q) this.handleQuery(q);
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        try {
+          const q = (this.inputField.value || '').trim();
+          if (q) this.handleQuery(q);
+        } catch (err) {
+          console.error("Assistant Error:", err);
+        }
         return false;
       };
     }
