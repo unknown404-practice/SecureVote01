@@ -5,7 +5,7 @@
 
 ---
 
-## 🚀 Live Demo
+## Official Protocol
 **Experience the official protocol here:** [https://unknown404-practice.github.io/SecureVote01/](https://unknown404-practice.github.io/SecureVote01/)
 
 ---

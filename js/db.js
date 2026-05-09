@@ -245,7 +245,6 @@ const DB = {
       
       const el = doc.data();
       const voters = el.voters || {};
-      const isDemoBypass = localStorage.getItem('sv_v2_demo_mode') === 'true';
       
       if (!voters[voterId]) {
         const localVoters = this.getVoters();
