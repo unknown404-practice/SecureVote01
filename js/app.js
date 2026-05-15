@@ -263,8 +263,6 @@ const App = {
       });
     };
   }
-    };
-  }
 };
 
 const Navigation = {
