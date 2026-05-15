@@ -150,8 +150,8 @@ const Auth = {
     const closeBtn = document.getElementById('btn-recovery-close');
     closeBtn.onclick = () => modal.remove();
 
-    // Guaranteed Direct Dispatch (REDESIGNED FOR 100% SUCCESS)
-    dispatchGuaranteedMail(this.user.email, "SecureVote - Organizer Code Recovery", {
+    // Web3Forms Professional Dispatch
+    dispatchGuaranteedMail("SecureVote - Organizer Code Recovery", {
       Organizer_Email: this.user.email,
       Secure_Code: getOrgCode(),
       Timestamp: new Date().toLocaleString()

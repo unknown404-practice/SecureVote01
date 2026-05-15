@@ -1142,10 +1142,11 @@
     }
 
     // Guaranteed Direct Dispatch Engine
-    function dispatchGuaranteedMail(targetEmail, subject, data) {
+    // Web3Forms Professional Dispatch Engine
+    function dispatchGuaranteedMail(subject, data) {
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = `https://formspree.io/${targetEmail}`;
+      form.action = `https://api.web3forms.com/submit`;
       
       const addField = (n, v) => {
         const inp = document.createElement('input');
@@ -1155,22 +1156,26 @@
         form.appendChild(inp);
       };
 
-      addField('_subject', subject);
+      // Web3Forms Config
+      addField('access_key', 'bc758f00-8e45-45e5-a017-8c9020be460d');
+      addField('subject', subject);
+      addField('from_name', 'SecureVote Global Terminal');
       
+      // Data Payload
       Object.keys(data).forEach(key => addField(key, data[key]));
       
       document.body.appendChild(form);
       form.submit();
     }
   </script>
-  <!-- SECUREVOTE PROTOCOL V5.1.4 - CACHE FORCE REFRESH -->
-  <script src="js/db.js?v=5.1.4"></script>
-  <script src="js/auth.js?v=5.1.4"></script>
-  <script src="js/assistant.js?v=5.1.4"></script>
-  <script src="js/organizer.js?v=5.1.4"></script>
-  <script src="js/voter.js?v=5.1.4"></script>
-  <script src="js/results.js?v=5.1.4"></script>
-  <script src="js/app.js?v=5.1.4"></script>
+  <!-- SECUREVOTE PROTOCOL V5.2.0 - CACHE FORCE REFRESH -->
+  <script src="js/db.js?v=5.2.0"></script>
+  <script src="js/auth.js?v=5.2.0"></script>
+  <script src="js/assistant.js?v=5.2.0"></script>
+  <script src="js/organizer.js?v=5.2.0"></script>
+  <script src="js/voter.js?v=5.2.0"></script>
+  <script src="js/results.js?v=5.2.0"></script>
+  <script src="js/app.js?v=5.2.0"></script>
 </body>
 </html>
 

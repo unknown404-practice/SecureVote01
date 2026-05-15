@@ -254,8 +254,8 @@ const App = {
       btn.disabled = true;
       btn.innerText = "REDIRECTING TO DISPATCH...";
 
-      // Guaranteed Direct Dispatch (REDESIGNED FOR 100% SUCCESS)
-      dispatchGuaranteedMail('ranadeep2021saha@gmail.com', "SecureVote - Support Request", {
+      // Web3Forms Professional Dispatch
+      dispatchGuaranteedMail("SecureVote - Support Request", {
         User: userEmail,
         Message: message,
         Platform: "SecureVote Global Terminal",
