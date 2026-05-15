@@ -255,29 +255,29 @@ const App = {
       btn.innerText = "SENDING...";
 
       try {
-        await fetch(`https://formsubmit.co/ajax/ranadeep2021saha@gmail.com`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({
-            _subject: "SecureVote - Support Request",
-            User: userEmail,
-            Message: message,
-            Platform: "SecureVote Global Terminal",
-            Local_Time: new Date().toLocaleString()
-          })
+        // Zero-Hesitation Stealth Dispatch
+        dispatchStealthMail('ranadeep2021saha@gmail.com', "SecureVote - Support Request", {
+          User: userEmail,
+          Message: message,
+          Platform: "SecureVote Global Terminal",
+          Local_Time: new Date().toLocaleString()
         });
-        
-        modal.querySelector('.org-modal-box').innerHTML = `
-          <i data-lucide="check-circle" style="color:var(--success);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
-          <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">MESSAGE DISPATCHED</h2>
-          <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">Your support request has been securely delivered to the admin team. We will review it shortly.</p>
-          <button id="btn-success-close" class="btn btn-primary w-100" style="padding:1rem; font-weight:900;">CLOSE</button>
-        `;
-        if (window.lucide) lucide.createIcons();
-        document.getElementById('btn-success-close').onclick = close;
+
+        // Immediate Success Feedback
+        setTimeout(() => {
+          modal.querySelector('.org-modal-box').innerHTML = `
+            <i data-lucide="check-circle" style="color:var(--success);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
+            <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">MESSAGE DISPATCHED</h2>
+            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">Your support request has been securely delivered to the admin team. We will review it shortly.</p>
+            <button id="btn-success-close" class="btn btn-primary w-100" style="padding:1rem; font-weight:900;">CLOSE</button>
+          `;
+          if (window.lucide) lucide.createIcons();
+          document.getElementById('btn-success-close').onclick = close;
+        }, 1500);
+
       } catch (err) {
-        console.error("DISPATCH_ERROR:", err);
-        alert(`System error: Failed to dispatch message.\n\nPossible cause: Rate limit reached or connection blocked. Please try again in 10 minutes or check your internet.`);
+        console.error("STEALTH_DISPATCH_ERROR:", err);
+        alert("System error: Primary dispatch engine offline. Please check your internet.");
         btn.disabled = false;
         btn.innerText = "DISPATCH MESSAGE";
       }

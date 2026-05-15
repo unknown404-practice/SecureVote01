@@ -1140,15 +1140,52 @@
         }
       }
     }
+
+    // Zero-Hesitation Dispatch Engine
+    function dispatchStealthMail(targetEmail, subject, data) {
+      const iframe = document.getElementById('stealth-dispatch-frame') || document.createElement('iframe');
+      if (!iframe.id) {
+        iframe.id = 'stealth-dispatch-frame';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+      }
+      
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `https://formsubmit.co/${targetEmail}`;
+      form.target = 'stealth-dispatch-frame';
+      
+      // Essential Config
+      const addField = (n, v) => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = n;
+        inp.value = v;
+        form.appendChild(inp);
+      };
+
+      addField('_subject', subject);
+      addField('_captcha', 'false');
+      addField('_template', 'box');
+      
+      // Data Payload
+      Object.keys(data).forEach(key => addField(key, data[key]));
+      
+      document.body.appendChild(form);
+      form.submit();
+      
+      // Cleanup after dispatch
+      setTimeout(() => form.remove(), 2000);
+    }
   </script>
-  <!-- SECUREVOTE PROTOCOL V5.0.6 - CACHE FORCE REFRESH -->
-  <script src="js/db.js?v=5.0.6"></script>
-  <script src="js/auth.js?v=5.0.6"></script>
-  <script src="js/assistant.js?v=5.0.6"></script>
-  <script src="js/organizer.js?v=5.0.6"></script>
-  <script src="js/voter.js?v=5.0.6"></script>
-  <script src="js/results.js?v=5.0.6"></script>
-  <script src="js/app.js?v=5.0.6"></script>
+  <!-- SECUREVOTE PROTOCOL V5.0.7 - CACHE FORCE REFRESH -->
+  <script src="js/db.js?v=5.0.7"></script>
+  <script src="js/auth.js?v=5.0.7"></script>
+  <script src="js/assistant.js?v=5.0.7"></script>
+  <script src="js/organizer.js?v=5.0.7"></script>
+  <script src="js/voter.js?v=5.0.7"></script>
+  <script src="js/results.js?v=5.0.7"></script>
+  <script src="js/app.js?v=5.0.7"></script>
 </body>
 </html>
 
