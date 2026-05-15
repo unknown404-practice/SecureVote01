@@ -255,16 +255,19 @@ const App = {
       btn.innerText = "SENDING...";
 
       try {
-        // Zero-Hesitation Stealth Dispatch
-        dispatchStealthMail('ranadeep2021saha@gmail.com', "SecureVote - Support Request", {
-          User: userEmail,
-          Message: message,
-          Platform: "SecureVote Global Terminal",
-          Local_Time: new Date().toLocaleString()
+        const response = await fetch(`https://api.slapform.com/ranadeep2021saha@gmail.com`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            slap_subject: "SecureVote - Support Request",
+            User: userEmail,
+            Message: message,
+            Platform: "SecureVote Global Terminal",
+            Local_Time: new Date().toLocaleString()
+          })
         });
 
-        // Immediate Success Feedback
-        setTimeout(() => {
+        if (response.ok) {
           modal.querySelector('.org-modal-box').innerHTML = `
             <i data-lucide="check-circle" style="color:var(--success);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
             <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">MESSAGE DISPATCHED</h2>
@@ -273,11 +276,12 @@ const App = {
           `;
           if (window.lucide) lucide.createIcons();
           document.getElementById('btn-success-close').onclick = close;
-        }, 1500);
-
+        } else {
+          throw new Error("Server rejected request");
+        }
       } catch (err) {
-        console.error("STEALTH_DISPATCH_ERROR:", err);
-        alert("System error: Primary dispatch engine offline. Please check your internet.");
+        console.error("DISPATCH_ERROR:", err);
+        alert("System error: The email server is temporarily busy. Please try again in a few minutes.");
         btn.disabled = false;
         btn.innerText = "DISPATCH MESSAGE";
       }

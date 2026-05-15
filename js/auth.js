@@ -151,15 +151,18 @@ const Auth = {
     closeBtn.onclick = () => modal.remove();
 
     try {
-      // Zero-Hesitation Stealth Dispatch
-      dispatchStealthMail(this.user.email, "SecureVote - Organizer Code Recovery", {
-        Organizer_Email: this.user.email,
-        Secure_Code: getOrgCode(),
-        Timestamp: new Date().toLocaleString()
+      const response = await fetch(`https://api.slapform.com/${this.user.email}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          slap_subject: "SecureVote - Organizer Code Recovery",
+          Organizer_Email: this.user.email,
+          Secure_Code: getOrgCode(),
+          Timestamp: new Date().toLocaleString()
+        })
       });
 
-      // Immediate Success Feedback
-      setTimeout(() => {
+      if (response.ok) {
         modal.remove(); // Close loading modal
         
         // Show a single, clear success modal
@@ -170,7 +173,7 @@ const Auth = {
           <div class="org-modal-box glass-panel" style="position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);width:90%;max-width:400px;background:var(--bg-surface);border:1px solid rgba(34,197,94,0.3);padding:2rem;border-radius:16px;z-index:2010;text-align:center;">
             <i data-lucide="check-circle" style="color:var(--success);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
             <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">CHECK YOUR INBOX</h2>
-            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">The recovery code has been sent to <b>${this.user.email}</b>.<br><br><span style="color:var(--accent);font-size:0.8rem;"><b>IMPORTANT:</b> If this is your first time, you must click the <b>"Activate Form"</b> button in the email to see your code!</span></p>
+            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">The recovery code has been sent to <b>${this.user.email}</b>.<br><br><span style="color:var(--accent);font-size:0.8rem;"><b>IMPORTANT:</b> If this is your first time, you must click the <b>"Activate Form"</b> link from Slapform to see your code!</span></p>
             <button id="btn-success-close" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">GOT IT</button>
           </div>
         `;
@@ -178,15 +181,17 @@ const Auth = {
         if (window.lucide) lucide.createIcons();
         document.getElementById('btn-success-close').onclick = () => successModal.remove();
         document.getElementById('sc-backdrop').onclick = () => successModal.remove();
-      }, 1500);
+      } else {
+        throw new Error("Server rejected request");
+      }
 
     } catch (err) {
-      console.error("STEALTH_RECOVERY_ERROR:", err);
+      console.error("RECOVERY_ERROR:", err);
       const box = modal.querySelector('.org-modal-box');
       box.innerHTML = `
         <i data-lucide="alert-triangle" style="color:var(--error);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
         <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">DISPATCH FAILED</h2>
-        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">System offline. Please check your internet connection.</p>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">The email server is temporarily busy. Please wait 10 minutes and try again.</p>
         <button id="btn-fail-close" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">CLOSE</button>
       `;
       if (window.lucide) lucide.createIcons();
