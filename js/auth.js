@@ -189,11 +189,12 @@ const Auth = {
         throw new Error(data.error || 'Server error');
       }
     } catch (err) {
+      console.error("RECOVERY_DISPATCH_ERROR:", err);
       const box = modal.querySelector('.org-modal-box');
       box.innerHTML = `
         <i data-lucide="alert-triangle" style="color:var(--error);width:48px;height:48px;margin-bottom:1rem;margin-left:auto;margin-right:auto;display:block;"></i>
         <h2 style="color:white;font-weight:900;margin-bottom:0.5rem;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;">DISPATCH FAILED</h2>
-        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">Failed to connect to the email server. Please check your internet connection.</p>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.5;">The email server rejected the request. This usually happens if you've sent too many emails recently (Rate Limit).<br><br><b>Please wait 10 minutes and try again.</b></p>
         <button id="btn-fail-close" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:900;letter-spacing:1px;">CLOSE</button>
       `;
       if (window.lucide) lucide.createIcons();

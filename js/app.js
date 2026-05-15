@@ -276,7 +276,8 @@ const App = {
         if (window.lucide) lucide.createIcons();
         document.getElementById('btn-success-close').onclick = close;
       } catch (err) {
-        alert("System error: Failed to dispatch message.");
+        console.error("DISPATCH_ERROR:", err);
+        alert(`System error: Failed to dispatch message.\n\nPossible cause: Rate limit reached or connection blocked. Please try again in 10 minutes or check your internet.`);
         btn.disabled = false;
         btn.innerText = "DISPATCH MESSAGE";
       }
