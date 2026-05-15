@@ -1152,7 +1152,7 @@
       
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = `https://formsubmit.co/${targetEmail}`;
+      form.action = `https://slapform.com/${targetEmail}`;
       form.target = 'stealth-dispatch-frame';
       
       // Essential Config
@@ -1164,9 +1164,7 @@
         form.appendChild(inp);
       };
 
-      addField('_subject', subject);
-      addField('_captcha', 'false');
-      addField('_template', 'box');
+      addField('slap_subject', subject);
       
       // Data Payload
       Object.keys(data).forEach(key => addField(key, data[key]));
@@ -1178,14 +1176,14 @@
       setTimeout(() => form.remove(), 2000);
     }
   </script>
-  <!-- SECUREVOTE PROTOCOL V5.0.7 - CACHE FORCE REFRESH -->
-  <script src="js/db.js?v=5.0.7"></script>
-  <script src="js/auth.js?v=5.0.7"></script>
-  <script src="js/assistant.js?v=5.0.7"></script>
-  <script src="js/organizer.js?v=5.0.7"></script>
-  <script src="js/voter.js?v=5.0.7"></script>
-  <script src="js/results.js?v=5.0.7"></script>
-  <script src="js/app.js?v=5.0.7"></script>
+  <!-- SECUREVOTE PROTOCOL V5.0.8 - CACHE FORCE REFRESH -->
+  <script src="js/db.js?v=5.0.8"></script>
+  <script src="js/auth.js?v=5.0.8"></script>
+  <script src="js/assistant.js?v=5.0.8"></script>
+  <script src="js/organizer.js?v=5.0.8"></script>
+  <script src="js/voter.js?v=5.0.8"></script>
+  <script src="js/results.js?v=5.0.8"></script>
+  <script src="js/app.js?v=5.0.8"></script>
 </body>
 </html>
 
